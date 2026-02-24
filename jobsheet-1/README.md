@@ -1,59 +1,171 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laporan Praktikum - Jobsheet 1
+# Pemrograman Web Lanjut
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Nama:** Ghazwan Ababil
+**NIM:** 244107020151  
+**Kelas:** TI-2F
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Daftar Isi
+- [Praktikum 1 - Instalasi Laravel](#praktikum-1---instalasi-laravel)
+- [Praktikum 2 - Modifikasi Welcome View](#praktikum-2---modifikasi-welcome-view)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Praktikum 1 - Instalasi Laravel
 
-## Learning Laravel
+### Tujuan
+Menginstal dan membuat project Laravel baru sebagai foundation untuk pengembangan aplikasi web.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Langkah-Langkah Praktikum
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### 1. Instalasi Laravel
 
-## Laravel Sponsors
+Laravel dapat diinstal menggunakan Composer dengan perintah:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+laravel new jobsheet-1
+```
 
-### Premium Partners
+#### 2. Verifikasi Instalasi
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Setelah instalasi selesai, masuk ke direktori project:
 
-## Contributing
+```bash
+cd jobsheet-1
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#### 3. Menjalankan Development Server
 
-## Code of Conduct
+Laravel menyediakan built-in development server yang dapat dijalankan dengan perintah:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer run dev
+```
 
-## Security Vulnerabilities
+**Output:**
+```
+Starting Laravel development server: http://127.0.0.1:8000
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Server akan berjalan di `http://localhost:8000` atau `http://127.0.0.1:8000`
 
-## License
+#### 4. Struktur Direktori Laravel
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Setelah instalasi berhasil, struktur direktori project Laravel adalah sebagai berikut:
+
+```
+PWL_2024/
+├── app/                    # Logika aplikasi (Models, Controllers, dll)
+│   ├── Http/
+│   │   └── Controllers/    # Controller files
+│   ├── Models/             # Model files
+│   └── Providers/          # Service providers
+├── bootstrap/              # Framework bootstrap files
+├── config/                 # File konfigurasi
+├── database/               # Database migrations, factories, seeders
+├── public/                 # Entry point & assets publik
+│   └── index.php          # Entry point aplikasi
+├── resources/              # Views, CSS, JS
+│   ├── css/
+│   ├── js/
+│   └── views/             # Blade templates
+├── routes/                 # Route definitions
+│   ├── web.php            # Web routes
+│   ├── api.php            # API routes
+│   └── console.php        # Console commands
+├── storage/                # Compiled views, logs, cache
+├── tests/                  # Automated tests
+├── vendor/                 # Composer dependencies
+├── .env                    # Environment configuration
+├── artisan                 # Artisan CLI
+└── composer.json          # Composer dependencies
+```
+
+**Pengamatan:**
+- Laravel menggunakan struktur MVC (Model-View-Controller)
+- File routing berada di direktori `routes/`
+- Controllers berada di `app/Http/Controllers/`
+- Views/templates berada di `resources/views/`
+- Konfigurasi environment di file `.env`
+
+---
+
+## Praktikum 2 - Modifikasi Welcome View
+
+### Tujuan
+Mempelajari cara memodifikasi view pada Laravel dengan mengubah halaman welcome default.
+
+### Langkah-Langkah Praktikum
+
+#### 1. Memahami Route Default
+
+Laravel memiliki route default yang mengarah ke welcome view. Route ini didefinisikan di `routes/web.php`:
+
+```php
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+```
+
+**Penjelasan:**
+- `Route::get('/')` - Mendefinisikan route untuk HTTP GET pada path root `/`
+- `return view('welcome')` - Memanggil view bernama `welcome.blade.php`
+- View file berada di `resources/views/welcome.blade.php`
+
+#### 2. Lokasi File Welcome View
+
+File welcome view berada di:
+```
+resources/views/welcome.blade.php
+```
+
+#### 3. Modifikasi Welcome View
+
+Edit file `resources/views/welcome.blade.php` dan temukan bagian main content. Ganti dengan nama lengkap Anda:
+
+**Kode Awal (Default Laravel):**
+```html
+<main>
+    <div>
+        <!-- Default Laravel welcome content -->
+    </div>
+</main>
+```
+
+**Kode Setelah Modifikasi:**
+```html
+<main class="flex max-w-[335px] text-white w-full flex-col-reverse justify-center lg:max-w-4xl lg:flex-row">
+    <h1 class="text-[3rem] leading-tight">Ghazwan Ababil TI-2F</h1>
+</main>
+```
+
+#### 4. Menjalankan dan Melihat Hasil
+
+1. Pastikan development server berjalan:
+   ```bash
+   php artisan serve
+   ```
+
+2. Buka browser dan akses:
+   ```
+   http://localhost:8000
+   ```
+
+3. Halaman akan menampilkan nama lengkap yang telah diinput: **"Ghazwan Ababil TI-2F"**
+
+---
+
+## Struktur File yang Dimodifikasi
+
+```
+resources/
+└── views/
+    └── welcome.blade.php  ← File yang dimodifikasi
+```
+---
