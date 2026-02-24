@@ -15,12 +15,12 @@ Repository Praktikum Mata Kuliah Pemrograman Web Lanjut
 
 ---
 
-## 📖 Dokumentasi
+## 📖 Daftar Jobsheet
 
 Setiap jobsheet memiliki dokumentasi lengkap di file `README.md` masing-masing:
 
-- [📄 Dokumentasi Jobsheet 1](jobsheet-1/README.md)
-- [📄 Dokumentasi Jobsheet 2](jobsheet-2/README.md)
+- [📄 Dokumentasi Jobsheet 1](jobsheet-1/)
+- [📄 Dokumentasi Jobsheet 2](jobsheet-2/)
 
 ---
 
