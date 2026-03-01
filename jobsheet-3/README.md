@@ -18,7 +18,7 @@ Menyiapkan database PWL_POS dan melakukan konfigurasi environment pada project L
 
 Buka aplikasi phpMyAdmin, lalu buat database baru dengan nama `PWL_POS`.
 
-![Screenshot phpMyAdmin buat database PWL_POS](database_PWL_POS.png)
+![Screenshot phpMyAdmin buat database PWL_POS](./screenshot/database_PWL_POS.png)
 *Output membuat database PWL_POS*
 
 ---
@@ -46,7 +46,7 @@ php artisan key:generate
 
 Sesuaikan konfigurasi database dengan database `PWL_POS` yang sudah dibuat.
 
-![Screenshot APP_KEY di file .env](env_config.png)
+![Screenshot APP_KEY di file .env](./screenshot/env_config.png)
 *Output file .env setelah konfigurasi*
 
 ---
@@ -133,7 +133,7 @@ Kemudian jalankan migrasi kembali:
 php artisan migrate
 ```
 
-![Screenshot Seluruh Tabel di Database Tools (DBeaver)](preview_table.png)
+![Screenshot Seluruh Tabel di Database Tools (DBeaver)](./screenshot/preview_table.png)
 *Output seluruh tabel pada database tools (DBeaver)*
 
 ---
