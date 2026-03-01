@@ -21,6 +21,7 @@ Setiap jobsheet memiliki dokumentasi lengkap di file `README.md` masing-masing:
 
 - [📄 Dokumentasi Jobsheet 1](jobsheet-1/)
 - [📄 Dokumentasi Jobsheet 2](jobsheet-2/)
+- [📄 Dokumentasi Jobsheet 3](jobsheet-3/)
 
 ---
 
@@ -52,6 +53,17 @@ Aplikasi Point of Sales sebagai studi kasus
   - Halaman User Profile
   - Halaman Penjualan/Sales
 
+### Jobsheet 3 - Migrasi, Seeder, dan Database (PWL POS)
+Praktikum memanipulasi skema dan data database menggunakan Query Builder & Eloquent ORM di Laravel
+- **Direktori:** [`jobsheet-3/`](jobsheet-3/)
+- **Materi:**
+  - **Praktikum 1:** Persiapan Lingkungan dan ENV `.env`
+  - **Praktikum 2:** Pembuatan Migrasi Database (dengan relasi `Foreign Key`)
+  - **Praktikum 3:** Popolulasi Seeder Dummy
+  - **Praktikum 4:** Eksekusi Database menggunakan `DB Facade`
+  - **Praktikum 5:** Manajemen Basis Data melalui `Query Builder`
+  - **Praktikum 6:** `Eloquent ORM` (Retrieval & Mutasi Rekaman Data)
+
 ---
 
 ## 🚀 Cara Menjalankan Project
@@ -79,6 +91,9 @@ Aplikasi Point of Sales sebagai studi kasus
    
    # Untuk POS App
    cd jobsheet-2/POS
+   
+   # Untuk Jobsheet 3 (POS)
+   cd jobsheet-3
    ```
 
 3. **Install dependencies**

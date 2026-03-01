@@ -7,6 +7,19 @@
 
 ---
 
+## Daftar Isi
+- [Praktikum 1 - Tahap Persiapan](#praktikum-1--tahap-persiapan)
+- [Praktikum 2 - Pembuatan File Migration](#praktikum-2--pembuatan-file-migration)
+  - [Praktikum 2.1 - Pembuatan file migrasi tanpa relasi (Tabel non-Foreign Key)](#praktikum-21---pembuatan-file-migrasi-tanpa-relasi-tabel-non-foreign-key)
+  - [Praktikum 2.2 - Pembuatan file migrasi dengan relasi (Tabel Foreign Key)](#praktikum-22---pembuatan-file-migrasi-dengan-relasi-tabel-foreign-key)
+- [Praktikum 3 - Membuat File Seeder](#praktikum-3--membuat-file-seeder)
+- [Praktikum 4 - Praktikum DB Facade (Controller & View)](#praktikum-4--praktikum-db-facade-controller--view)
+- [Praktikum 5 - Praktikum DB Query Builder](#praktikum-5--praktikum-db-query-builder)
+- [Praktikum 6 - Praktikum Eloquent ORM](#praktikum-6--praktikum-eloquent-orm)
+- [Penutup](#penutup)
+
+---
+
 ## Praktikum 1 - Setup Lingkungan Kerja dan Database
 
 ### Tujuan
@@ -610,3 +623,227 @@ Kunjungi alamat URL `http://127.0.0.1:8000/kategori`. Halaman akan menampilkan s
 *Output rendering di browser pada URL `/kategori`*
 
 ---
+
+## Praktikum 6 – Praktikum Eloquent ORM
+
+### Tujuan
+Mengambil, menambahkan, dan memanipulasi data di database menggunakan paradigma berorientasi objek (OOP) di *Eloquent ORM* Laravel. Setiap tabel database akan direpresentasikan oleh satu "Model" class. 
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat `UserModel`
+Untuk dapat berinteraksi dengan database memakai Eloquent, buat Model untuk tabel `m_user` terlebih dahulu.
+
+**Command:**
+```bash
+php artisan make:model UserModel
+```
+
+#### 2. Mengkonfigurasi Properti di `UserModel`
+Secara default Eloquent mengasumsikan nama tabel memiliki bentuk jamak dari nama class (ex: `user_models`) dan *primary key* bernama `id`. Karena skema/tabel kita memakai penamaan kustom (ex: `m_user` dan `user_id`), kita harus *override* deklarasi ini di Model terkait. 
+
+Buka `app/Models/UserModel.php` dan modifikasi seperti berikut:
+
+**Code:**
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class UserModel extends Model
+{
+    use HasFactory;
+
+    protected $table = 'm_user';        // Mendefinisikan nama tabel yang digunakan oleh model ini
+    protected $primaryKey = 'user_id';  // Mendefinisikan primary key dari tabel yang digunakan
+}
+```
+
+#### 3. Membuat `UserController` & Mendaftarkan Route
+Ekskusi *business-logic* nantinya akan bersarang di *Controller*. Buat berkas baru:
+
+**Command:**
+```bash
+php artisan make:controller UserController
+```
+
+Dan hubungkan *Endpoint/URI* ke aplikasi dengan memodifikasi `routes/web.php`:
+
+**Code:**
+```php
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\UserController;
+
+// ...
+
+Route::get('/user', [UserController::class, 'index']);
+```
+
+#### 4. Menampilkan Data menggunakan Eloquent (Fungsi `index`)
+Buka `UserController.php` dan tambahkan fungsionalitas untuk mengambil seluruh (*all*) data user menggunakan class `UserModel`.
+
+**Code:**
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\UserModel;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    public function index()
+    {
+        // coba akses model UserModel
+        $user = UserModel::all(); // ambil semua data dari tabel m_user
+        return view('user', ['data' => $user]);
+    }
+}
+```
+
+#### 5. Membuat View `user.blade.php`
+Untuk *merender* output dari data Object-Relational Eloquent `$user`, buat file `resources/views/user.blade.php`.
+
+**Code:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data User</title>
+</head>
+<body>
+    <h1>Data User</h1>
+    <table border="1" cellpadding="2" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Nama</th>
+            <th>ID Level Pengguna</th>
+        </tr>
+        @foreach ($data as $d)
+        <tr>
+            <td>{{ $d->user_id }}</td>
+            <td>{{ $d->username }}</td>
+            <td>{{ $d->nama }}</td>
+            <td>{{ $d->level_id }}</td>
+        </tr>
+        @endforeach
+    </table>
+</body>
+</html>
+```
+
+Test route menggunakan server / browser, maka seluruh baris data User (`m_user`) dari basis data yang di-*retrieve* (ambil) secara objek berbasis *collection* akan tampil sempurna.
+
+![Screenshot User](screenshot/view_user.png)
+*Output rendering pengguna*
+
+#### 6. Memanipulasi *Insert* & *Update* via Eloquent
+Untuk menambahkan data `customer-1` (serta memperbarui datanya di percobaan selanjutnya), kita modifikasi fungsi dari `index()` di `UserController`.
+
+***Penerapan Insert Data (`UserModel::insert`)***
+**Code:**
+```php
+    public function index()
+    {
+        // tambah data user dengan Eloquent Model
+        $data = [
+            'username' => 'customer-1',
+            'nama' => 'Pelanggan',
+            'password' => Hash::make('12345'),
+            'level_id' => 4 
+        ];
+        UserModel::insert($data); // tambahkan data ke tabel m_user
+
+        // coba akses model UserModel
+        $user = UserModel::all(); // ambil semua data dari tabel m_user
+        return view('user', ['data' => $user]);
+    }
+```
+*Catatan: Baris data `level_id = 4` perlu menambahkan data level keempat terlebih dahulu melalui seeder/migrasi/manual agar tidak menimpa masalah Referential Integrity pada Database karena ketika dijalankan skrip tersebut tidak ada data level keempat sehingga akan terjadi error*
+
+***Penerapan Update Data***
+**Code:**
+```php
+    public function index()
+    {
+        // update data user dengan Eloquent Model
+        $data = [
+            'nama' => 'Atministrator',
+        ];
+        UserModel::where('username', 'admin')->update($data); // update data user
+
+        // coba akses model UserModel
+        $user = UserModel::all(); // ambil semua data dari tabel m_user
+        return view('user', ['data' => $user]);
+    }
+```
+
+![Screenshot User](screenshot/view_user_update.png) 
+*Output rendering pengguna setelah update*
+
+---
+
+## Penutup
+
+**1. Pada Praktikum 1 - Tahap 5, apakah fungsi dari `APP_KEY` pada file setting `.env` Laravel?**  
+`APP_KEY` berfungsi sebagai kunci enkripsi string acak 32-karakter (jika menggunakan cipher `AES-256-CBC`) yang digunakan oleh backend Laravel untuk mengamankan data pengguna, cookies, sesi (sessions), manajemen kata sandi, hingga penandatanganan payload. Tanpa `APP_KEY` yang tervalidasi, session pengguna akan otomatis kedaluwarsa dan keamanan sistem terkompromi.
+
+**2. Pada Praktikum 1, bagaimana kita men-generate nilai untuk `APP_KEY`?**  
+Dengan menjalankan perintah Artisan berikut di Terminal CLI:
+```bash
+php artisan key:generate
+```
+Perintah ini otomatis mengisikan nilai *base64-encoded string* baru ke parameter `APP_KEY=` di dalam `.env`.
+
+**3. Pada Praktikum 2.1 - Tahap 1, secara default Laravel memiliki berapa file migrasi? dan untuk apa saja file migrasi tersebut?**  
+Secara default pada versi Laravel 11 dan 12, terdapat **3 buah file migrasi default**:
+1. `0001_01_01_000000_create_users_table.php` = Mengurus skema pencatatan tabel kredensial pengguna (`users`), reset kata sandi (`password_reset_tokens`), dan pencatatan sesi login (`sessions`).
+2. `0001_01_01_000001_create_cache_table.php` = Membuat tabel `cache` untuk menyimpan cache berbasis database serta tabel penguncian `cache_locks`.
+3. `0001_01_01_000002_create_jobs_table.php` = Menangani skema tabel pemrosesan tugas *queue* (antrean), tabel *job batches*, serta log tugas yang gagal dieksekusi (`failed_jobs`).
+
+**4. Secara default, file migrasi terdapat kode `$table->timestamps();`, apa tujuan/output dari fungsi tersebut?**  
+Fungsi `$table->timestamps()` secara otomatis akan men-*generate* dua buah pilar kolom metadatam yaitu `created_at` (mencatat waktu kapan baris pertama kali dibuat) dan `updated_at` (mencatat waktu kapan baris tersebut terakhir kali dimodifikasi), keduanya bertipe `TIMESTAMP` atau `DATETIME`.
+
+**5. Pada File Migrasi, terdapat fungsi `$table->id();` Tipe data apa yang dihasilkan dari fungsi tersebut?**  
+Untuk DBMS seperti MySQL/MariaDB, `$table->id()` menghasilkan tipe data **`BIGINT(20) UNSIGNED`** yang secara otomatis dilengkapi sifat `AUTO_INCREMENT` dan diposisikan sebagai struktur `PRIMARY KEY`.
+
+**6. Apa bedanya hasil migrasi pada table `m_level`, antara menggunakan `$table->id();` dengan menggunakan `$table->id('level_id');`?**  
+- Penggunaan `$table->id();` akan membuat kolom Primary Key Auto-Increment dengan nama default `"id"`.
+- Penggunaan `$table->id('level_id');` akan membuat perilaku Primary Key Auto-Increment yang identik, hanya saja nama *field/kolom* di database-nya diubah aliasnya spesifik menjadi `"level_id"`.
+
+**7. Pada migration, Fungsi `->unique()` digunakan untuk apa?**  
+Fungsi `->unique()` digunakan untuk menambahkan konstrain **UNIQUE Index** pada kolom tersebut, yang menjamin bahwa tidak boleh ada duplikasi data atau nilai yang sama persis (identik) di kolom itu pada lebih dari 1 baris record manapun.
+
+**8. Pada Praktikum 2.2 - Tahap 2, kenapa kolom `level_id` pada tabel `m_user` menggunakan `$table->unsignedBigInteger('level_id')`, sedangkan kolom `level_id` pada tabel `m_level` menggunakan `$table->id('level_id')`?**  
+Kolom `level_id` pada `m_user` dirancang sebagai **Foreign Key** yang akan merujuk kepada kolom asal di tabel `m_level`. 
+
+Oleh karena metode `$table->id()` di tabel asal menghasilkan tipe `BIGINT UNSIGNED`, maka Foreign Key-nya *wajib absolut* disesuaikan properti tipe datanya dengan `$table->unsignedBigInteger('level_id')` agar struktur relasi Foreign Key bisa sukses terhubung (Referential Integrity). Akan error jika tipenya berbeda atau jika `m_user` memakai `id()` karena `id()` akan menetapkan Primary Key dan `AUTO_INCREMENT` yang tidak masuk akal diterapkan untuk Foreign Constraint.
+
+**9. Pada Praktikum 3 - Tahap 6, apa tujuan dari Class `Hash`? dan apa maksud dari kode program `Hash::make('1234');`?**  
+Class `Hash` adalah *Facade Configuration* di Laravel yang menyediakan implementasi algoritma *hashing* aman (secara default *Bcrypt* atau *Argon2*) untuk mengenkripsi rentetan string (seperti password). 
+
+Kode `Hash::make('1234')` berarti kita mengenkripsi *plaintext* angka `"1234"` menjadi serangkaian teks tersandi panjang. Hal ini dilakukan karena kata sandi tidak boleh disimpan dalam bentuk aslinya di basis data demi alasan keamanan pencegahan kebocoran.
+
+**10. Pada Praktikum 4 - Tahap 3/5/7, pada query builder terdapat tanda tanya (`?`), apa kegunaan dari tanda tanya (`?`) tersebut?**  
+Tanda tanya (`?`) bertindak sebagai parameter *Placeholder Binding* dalam format Eksekusi Tersiapkan (*Prepared Statements*) PDO. Tujuannya adalah untuk memisahkan logika String Query SQL dengan nilai/value asli yang diletakkan pada Array terpisah (`['CUS', 'Pelanggan']`). Ini secara absolut menanggulangi celah kejahatan kerentanan **SQL Injection**, karena karakter berbahaya yang di-input otomatis di-escape oleh engine DB.
+
+**11. Pada Praktikum 6 - Tahap 3, apa tujuan penulisan kode `protected $table = 'm_user';` dan `protected $primaryKey = 'user_id';`?**  
+Secara default, jika kita hanya menulis kelas `UserModel`, Eloquent akan berasumsi bahwa ia harus mencari entitas ke dalam tabel bentuk *plural* snake_case bernama `user_models` dan melakukan pencarian indeks utama di field bernama `id`. 
+
+- *Override* variabel `$table = 'm_user'` memaksa Eloquent untuk melakukan query pencarian tabel database bernama spesifik `m_user`.
+- *Override* variabel `$primaryKey = 'user_id'` mengalihkan acuan Primary Key pencarian atau mutasi Eloquent (seperti `find()`, `save()`) untuk merujuk ke kolom `user_id` alih-alih mengekspektasikan kolom default `id` yang mana tidak kita deklarasikan.
+
+**12. Menurut kalian, lebih mudah menggunakan mana dalam melakukan operasi CRUD ke database (DB Façade / Query Builder / Eloquent ORM)? jelaskan.**  
+Dari ketiga metode, **Eloquent ORM** jauh lebih mudah dan direkomendasikan untuk digunakan dalam struktur skema skala besar.
+
+**Alasannya:**
+- Mengandalkan metodologi Pemrograman Berorientasi Objek (OOP) sepenuhnya sehingga syntax perlakuan basis data terasa natural seperti modifikasi properti kelas Object biasa di PHP dibandingkan merajut string SQL mentah.
+- Pengaturan manipulasi tanggal (Timestamps) yang serba otomatis (tanpa perlu mengisi `created_at` secara manual).
+- Implementasi relasi Foreign Key antar tabel menjadi sangat sederhana seperti memanggil fungsi properti (ex: `$user->level->nama_level`).
+- Eloquent menyediakan sekumpulan metode sakti (seperti *Mutators/Accessors, Soft Deletes, Eager Loading*) yang sangat mempersingkat jumlah baris kode ketimbang menggunakan DB Facade atau Raw Query Builder.
