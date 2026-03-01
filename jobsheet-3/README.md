@@ -496,3 +496,117 @@ Kunjungi `http://127.0.0.1:8000/level` atau `localhost:8000/level` melalui *Web 
 *Output rendering di browser pada URL `/level`*
 
 ---
+
+## Praktikum 5 – Praktikum DB Query Builder
+
+### Tujuan
+Mengambil dan memanipulasi data dari database menggunakan metode `DB Query Builder` Laravel (contohnya `DB::table()`).
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat `KategoriController`
+Buat controller baru bernama `KategoriController` untuk mengelola data-data terkait kategori barang (`m_kategori`).
+
+**Command:**
+```bash
+php artisan make:controller KategoriController
+```
+
+#### 2. Mendaftarkan Route
+Daftarkan Route endpoint `/kategori` di dalam `routes/web.php` untuk memanggil fungsi `index` dari `KategoriController`.
+
+**Code:**
+```php
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\KategoriController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/level', [LevelController::class, 'index']);
+
+// Menambahkan route untuk kategori
+Route::get('/kategori', [KategoriController::class, 'index']);
+```
+
+#### 3. Mengimplementasikan Metode `index` 
+Instruksi selanjutnya meminta kita memodifikasi file `app/Http/Controllers/KategoriController.php`. Tambahkan fungsi `index()` yang menampung kueri operasi manipulasi data (seperti `insert`, `update`, `delete` lewat *Query Builder* `DB::table()`). Biarkan kueri `get()` atau aksi pemanggilan datanya berjalan dan *comment-out* bagian modifikasi lainnya.
+
+**Code:**
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class KategoriController extends Controller
+{
+    public function index()
+    {
+        /* $data = [
+            'kategori_kode' => 'SNK',
+            'kategori_nama' => 'Snack/Makanan Ringan',
+            'created_at' => now()
+        ];
+        DB::table('m_kategori')->insert($data);
+        return 'Insert data baru berhasil'; */
+
+        // $row = DB::table('m_kategori')->where('kategori_kode', 'SNK')->update(['kategori_nama' => 'Camilan']);
+        // return 'Update data berhasil. Jumlah data yang diupdate: ' . $row . ' baris';
+
+        // $row = DB::table('m_kategori')->where('kategori_kode', 'SNK')->delete();
+        // return 'Delete data berhasil. Jumlah data yang dihapus: ' . $row . ' baris';
+
+        $data = DB::table('m_kategori')->get();
+        return view('kategori', ['data' => $data]);
+    }
+}
+```
+
+#### 4. Membuat View `kategori.blade.php`
+Buat file *View* bernama `kategori.blade.php` di dalam direktori `resources/views`. File ini akan digunakan untuk merender (menampilkan) array data object `$data` (`m_kategori`) yang dikirim dari `KategoriController`.
+
+**Code:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Kategori Barang</title>
+</head>
+<body>
+    <h1>Data Kategori Barang</h1>
+    <table border="1" cellpadding="2" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>Kode Kategori</th>
+            <th>Nama Kategori</th>
+        </tr>
+        @foreach ($data as $d)
+        <tr>
+            <td>{{ $d->kategori_id }}</td>
+            <td>{{ $d->kategori_kode }}</td>
+            <td>{{ $d->kategori_nama }}</td>
+        </tr>
+        @endforeach
+    </table>
+</body>
+</html>
+```
+
+#### 5. Menguji Hasilnya di Browser
+Pastikan *Development Server* Laravel sedang berjalan. Jika belum, jalankan:
+
+**Command:**
+```bash
+php artisan serve
+```
+
+Kunjungi alamat URL `http://127.0.0.1:8000/kategori`. Halaman akan menampilkan seluruh data kategori awal yang dimasukkan via Seeder yang diload secara dinamis.
+
+![Screenshot Hasil View Kategori](screenshot/view_kategori.png)
+*Output rendering di browser pada URL `/kategori`*
+
+---
