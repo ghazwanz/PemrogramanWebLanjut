@@ -137,3 +137,135 @@ php artisan migrate
 *Output seluruh tabel pada database tools (DBeaver)*
 
 ---
+
+## Praktikum 2.2 - Pembuatan file migrasi dengan relasi
+
+### Tujuan
+Mengimplementasikan tabel-tabel di database (`m_user`, `m_barang`, `t_penjualan`, `t_stok`, `t_penjualan_detail`) yang memiliki relasi / *Foreign Key* menggunakan fitur Migration pada Laravel.
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat dan Memodifikasi File Migrasi `m_user`
+
+Pertama, file migrasi dibuat khusus untuk tabel `m_user`. Relasi dengan tabel `m_level` diatur pada skema menggunakan `foreign()`.
+
+**Command:**
+```bash
+php artisan make:migration create_m_user_table
+```
+
+**Code (m_user):**
+```php
+        Schema::create('m_user', function (Blueprint $table) {
+            $table->id('user_id');
+            $table->unsignedBigInteger('level_id')->index();
+            $table->string('username', 20)->unique();
+            $table->string('nama', 100);
+            $table->string('password');
+            $table->timestamps();
+
+            $table->foreign('level_id')->references('level_id')->on('m_level');
+        });
+```
+
+Selanjutnya, migrasi dijalankan untuk mengaplikasikan skema ke database.
+
+**Command:**
+```bash
+php artisan migrate
+```
+
+---
+
+#### 2. Membuat dan Memodifikasi File Migrasi Tabel Relasi Lainnya
+
+Membuat file migrasi untuk sisa tabel yang ada pada desain database, yaitu `m_barang`, `t_penjualan`, `t_stok`, dan `t_penjualan_detail`. 
+
+**Command:**
+```bash
+php artisan make:migration create_m_barang_table
+php artisan make:migration create_t_penjualan_table
+php artisan make:migration create_t_stok_table
+php artisan make:migration create_t_penjualan_detail_table
+```
+
+Modifikasi skema untuk mendefinisikan seluruh variabel dan *Foreign Key* pada fungsi `up()` di masing-masing file migrasi, sesuai dengan desain ERD atau skema gambar yang diberikan.
+
+**Code (m_barang):**
+```php
+        Schema::create('m_barang', function (Blueprint $table) {
+            $table->id('barang_id');
+            $table->unsignedBigInteger('kategori_id')->index();
+            $table->string('barang_kode', 10)->unique();
+            $table->string('barang_nama', 100);
+            $table->integer('harga_beli');
+            $table->integer('harga_jual');
+            $table->timestamps();
+
+            $table->foreign('kategori_id')->references('kategori_id')->on('m_kategori');
+        });
+```
+
+**Code (t_penjualan):**
+```php
+        Schema::create('t_penjualan', function (Blueprint $table) {
+            $table->id('penjualan_id');
+            $table->unsignedBigInteger('user_id')->index();
+            $table->string('pembeli', 50);
+            $table->string('penjualan_kode', 20)->unique();
+            $table->dateTime('penjualan_tanggal');
+            $table->timestamps();
+
+            $table->foreign('user_id')->references('user_id')->on('m_user');
+        });
+```
+
+**Code (t_stok):**
+```php
+        Schema::create('t_stok', function (Blueprint $table) {
+            $table->id('stok_id');
+            $table->unsignedBigInteger('supplier_id')->index();
+            $table->unsignedBigInteger('barang_id')->index();
+            $table->unsignedBigInteger('user_id')->index();
+            $table->dateTime('stok_tanggal');
+            $table->integer('stok_jumlah');
+            $table->timestamps();
+
+            $table->foreign('supplier_id')->references('supplier_id')->on('m_supplier');
+            $table->foreign('barang_id')->references('barang_id')->on('m_barang');
+            $table->foreign('user_id')->references('user_id')->on('m_user');
+        });
+```
+
+**Code (t_penjualan_detail):**
+```php
+        Schema::create('t_penjualan_detail', function (Blueprint $table) {
+            $table->id('detail_id');
+            $table->unsignedBigInteger('penjualan_id')->index();
+            $table->unsignedBigInteger('barang_id')->index();
+            $table->integer('harga');
+            $table->integer('jumlah');
+            $table->timestamps();
+
+            $table->foreign('penjualan_id')->references('penjualan_id')->on('t_penjualan');
+            $table->foreign('barang_id')->references('barang_id')->on('m_barang');
+        });
+```
+
+#### 3. Menjalankan Semua Migrasi Terbaru
+
+Setelah seluruh skema ditetapkan, jalankan perintah migrasi. Laravel secara otomatis akan menjalankan migrasi sesuai dengan urutan pembuatan file sehingga *Foreign Key* bisa terikat dengan aman.
+
+**Command:**
+```bash
+php artisan migrate
+```
+
+#### 4. Mengecek ERD / Relasi Tabel di Database Tools
+
+Jika semua file migrasi sudah di jalankan, cek apakah database sudah meng-generate seluruh tabel dengan atribut relasinya pada database administrator / viewer.
+
+![Screenshot ERD di Database Tools (DBeaver)](./screenshot/erd_database.png)
+*Output desainer relasi / tabel (ERD) dari DBMS client viewer*
+
+---
