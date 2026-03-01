@@ -50,3 +50,90 @@ Sesuaikan konfigurasi database dengan database `PWL_POS` yang sudah dibuat.
 *Output file .env setelah konfigurasi*
 
 ---
+
+## Praktikum 2.1 - Pembuatan file migrasi tanpa relasi
+
+### Tujuan
+Membuat file migrasi untuk mengelola skema database secara terstruktur tanpa perlu menulis query SQL secara manual dan memfasilitasi teamwork.
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat Migration untuk Tabel m_level
+
+Membuat file migrasi baru khusus untuk tabel `m_level`.
+
+**Command:**
+```bash
+php artisan make:migration create_m_level_table
+```
+
+#### 2. Modifikasi Skema Migration `m_level`
+
+Modifikasi file migrasi yang dihasilkan (`database/migrations/..._create_m_level_table.php`) agar sesuai dengan desain database yang telah ditentukan.
+
+**Code:**
+```php
+        Schema::create('m_level', function (Blueprint $table) {
+            $table->id('level_id');
+            $table->string('level_kode', 10);
+            $table->string('level_nama', 100);
+            $table->timestamps();
+        });
+```
+
+#### 3. Menjalankan Migrasi
+
+Menyimpan kode dan menjalankan perintah untuk melakukan migrasi skema ke tabel di dalam database.
+
+**Command:**
+```bash
+php artisan migrate
+```
+
+#### 4. Mengecek Database
+
+Mengecek menggunakan database tools pilihan (seperti phpMyAdmin pada MySQL atau ekstensi SQLite Viewer) untuk memastikan tabel sudah ter-generate.
+
+---
+
+#### 5. Membuat Migration untuk Tabel m_kategori dan m_supplier
+
+Membuat file migrasi untuk tabel `m_kategori` dan `m_supplier` beserta memodifikasi file migrasi untuk mendefinisikan skema (keduanya tidak memiliki foreign key).
+
+**Command:**
+```bash
+php artisan make:migration create_m_kategori_table
+php artisan make:migration create_m_supplier_table
+```
+
+**Code (`m_kategori`):**
+```php
+        Schema::create('m_kategori', function (Blueprint $table) {
+            $table->id('kategori_id');
+            $table->string('kategori_kode', 10);
+            $table->string('kategori_nama', 100);
+            $table->timestamps();
+        });
+```
+
+**Code (`m_supplier`):**
+```php
+        Schema::create('m_supplier', function (Blueprint $table) {
+            $table->id('supplier_id');
+            $table->string('supplier_kode', 10);
+            $table->string('supplier_nama', 100);
+            $table->string('supplier_alamat', 255);
+            $table->timestamps();
+        });
+```
+
+Kemudian jalankan migrasi kembali:
+**Command:**
+```bash
+php artisan migrate
+```
+
+![Screenshot Seluruh Tabel di Database Tools (DBeaver)](preview_table.png)
+*Output seluruh tabel pada database tools (DBeaver)*
+
+---
