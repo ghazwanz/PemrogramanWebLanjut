@@ -269,3 +269,124 @@ Jika semua file migrasi sudah di jalankan, cek apakah database sudah meng-genera
 *Output desainer relasi / tabel (ERD) dari DBMS client viewer*
 
 ---
+
+## Praktikum 3 – Membuat File Seeder
+
+### Tujuan
+Menginput data awal dummmy ke dalam tabel database secara otomatis menggunakan fitur Seeder pada Laravel.
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat dan Mengkonfigurasi File Seeder `m_level`
+
+Membuat file seeder untuk menginisialisasi tabel `m_level` bernama `LevelSeeder`.
+
+**Command:**
+```bash
+php artisan make:seeder LevelSeeder
+```
+
+Selanjutnya, untuk memasukkan data awal, modifikasi file tersebut di dalam function `run()`.
+
+**Code:**
+```php
+        $data = [
+            ['level_id' => 1, 'level_kode' => 'ADM', 'level_nama' => 'Administrator'],
+            ['level_id' => 2, 'level_kode' => 'MNG', 'level_nama' => 'Manager'],
+            ['level_id' => 3, 'level_kode' => 'STF', 'level_nama' => 'Staff/Kasir'],
+        ];
+        DB::table('m_level')->insert($data);
+```
+
+Jalankan perintah untuk mengeksekusi class `LevelSeeder`:
+**Command:**
+```bash
+php artisan db:seed --class=LevelSeeder
+```
+
+Setelah `LevelSeeder` dijalankan dengan berhasil, cek tabel `m_level` di database tools untuk mengonfirmasi bahwa data berhasil disisipkan.
+
+![Screenshot Data Tabel m_level](screenshot/data_m_level.png)
+*Output data pada tabel m_level setelah eksekusi seeder*
+
+---
+
+#### 2. Membuat dan Mengkonfigurasi File Seeder `m_user`
+
+Buat file seeder untuk tabel `m_user` dengan nama `UserSeeder`. Karena tabel ini mereferensikan `level_id`, data yang diinputkan perlu disesuaikan dengan ID dari `m_level` pada praktikum sebelumnya. 
+
+**Command:**
+```bash
+php artisan make:seeder UserSeeder
+```
+
+Modifikasi isi data dari class `UserSeeder` seperti berikut. 
+
+**Code:**
+```php
+        $data = [
+            [
+                'user_id' => 1,
+                'level_id' => 1,
+                'username' => 'admin',
+                'nama' => 'Administrator',
+                'password' => Hash::make('12345'), // class untuk mengenkripsi/hash password
+            ],
+            [
+                'user_id' => 2,
+                'level_id' => 2,
+                'username' => 'manager',
+                'nama' => 'Manager',
+                'password' => Hash::make('12345'),
+            ],
+            [
+                'user_id' => 3,
+                'level_id' => 3,
+                'username' => 'staff',
+                'nama' => 'Staff/Kasir',
+                'password' => Hash::make('12345'),
+            ],
+        ];
+        DB::table('m_user')->insert($data);
+```
+
+Setelah itu, jalankan seeder menggunakan artisan command dan konfirmasi hasil insert baris pada database administrator / viewer.
+
+**Command:**
+```bash
+php artisan db:seed --class=UserSeeder
+```
+
+![Screenshot Data Tabel m_user](screenshot/data_m_user.png)
+*Output data pada tabel m_user setelah eksekusi seeder*
+
+---
+
+#### 3. Membuat Seeder untuk Tabel Referensi Lainnya
+
+Lakukan hal yang sama untuk lima tabel (entitas) sisanya: `m_kategori`, `m_supplier`, `m_barang`, `t_stok`, dan `t_penjualan` serta `t_penjualan_detail`. Jangan lupa untuk memperhatikan ikatan referensi / *Foreign Key* nya.
+
+**Command Pembuatan Seeder:**
+```bash
+php artisan make:seeder KategoriSeeder
+php artisan make:seeder SupplierSeeder
+php artisan make:seeder BarangSeeder
+php artisan make:seeder StokSeeder
+php artisan make:seeder PenjualanSeeder
+php artisan make:seeder PenjualanDetailSeeder
+```
+
+Berikut spesifikasi / *constraint* pengisian datanya (tertera pada dokumentasi tugas):
+- **KategoriSeeder**: 5 kategori barang
+- **SupplierSeeder**: 3 supplier barang 
+- **BarangSeeder**: 15 barang berbeda (5 barang/supplier) 
+- **StokSeeder**: Stok untuk 15 barang
+- **PenjualanSeeder**: 10 transaksi penjualan
+- **PenjualanDetailSeeder**: 3 barang untuk setiap transaksi penjualan (30 Data)
+
+Setelah seluruh modifikasi di `Database/Seeders` terselesaikan, jalankan `db:seed` untuk semua class terkait dan amati perubahan isinya dari sisi SQL viewer.
+
+![Screenshot Data Salah Satu Tabel](screenshot/table_penjualan_detail.png)
+*Output data salah satu tabel setelah penambahan Seeder Database Client*
+
+---
