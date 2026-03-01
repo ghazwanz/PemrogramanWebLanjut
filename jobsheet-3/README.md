@@ -390,3 +390,109 @@ Setelah seluruh modifikasi di `Database/Seeders` terselesaikan, jalankan `db:see
 *Output data salah satu tabel setelah penambahan Seeder Database Client*
 
 ---
+
+## Praktikum 4 – Praktikum DB Facade (Controller & View)
+
+### Tujuan
+Mengambil dan memanipulasi data dari database menggunakan mekanisme `DB Facade` bawaan Laravel untuk diolah di lapisan Controller maupun ditampilkan lewat lapisan View (`blade`).
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat dan Mengkonfigurasi `LevelController`
+Buat Controller untuk mengelola data pada tabel `m_level`.
+
+**Command:**
+```bash
+php artisan make:controller LevelController
+```
+
+#### 2. Mendaftarkan Route
+Setelah controller dibuat, routing perlu ditetapkan agar server tahu ketika user mengunjungi sebuah End-Point `URL`, fungsi mana yang harus ia eksekusi. Buka file pengaturan rute aplikasi di `routes/web.php` dan tambahkan hal berikut.
+
+**Code:**
+```php
+use App\Http\Controllers\LevelController;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+// Menambahkan route untuk level
+Route::get('/level', [LevelController::class, 'index']);
+```
+
+#### 3. Mengimplementasikan Metode `index` 
+Modifikasi file `app/Http/Controllers/LevelController.php`. Tambahkan fungsi `index()` yang menampung beragam kueri dasar (seperti `insert`, `update`, `delete` dari Facade `DB`), meski untuk sekarang bagian manipulasi data di-*comment-out* dan bagian pemanggilan `select` yang dibiarkan tereksekusi.
+
+**Code:**
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class LevelController extends Controller
+{
+    public function index()
+    {
+        // DB::insert('insert into m_level(level_kode, level_nama, created_at) values(?, ?, ?)', ['CUS', 'Pelanggan', now()]);
+        // return 'Insert data baru berhasil';
+
+        // $row = DB::update('update m_level set level_nama = ? where level_kode = ?', ['Customer', 'CUS']);
+        // return 'Update data berhasil. Jumlah data yang diupdate: ' . $row . ' baris';
+
+        // $row = DB::delete('delete from m_level where level_kode = ?', ['CUS']);
+        // return 'Delete data berhasil. Jumlah data yang dihapus: ' . $row . ' baris';
+
+        $data = DB::select('select * from m_level');
+        return view('level', ['data' => $data]);
+    }
+}
+```
+
+#### 4. Membuat View `level.blade.php`
+Buat file *View* bernama `level.blade.php` di dalam direktori `resources/views`. File ini akan digunakan untuk merender (menampilkan) array data `$data` yang dikirim dari `LevelController`.
+
+**Code:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Level Pengguna</title>
+</head>
+<body>
+    <h1>Data Level Pengguna</h1>
+    <table border="1" cellpadding="2" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>Kode Level</th>
+            <th>Nama Level</th>
+        </tr>
+        @foreach ($data as $d)
+        <tr>
+            <td>{{ $d->level_id }}</td>
+            <td>{{ $d->level_kode }}</td>
+            <td>{{ $d->level_nama }}</td>
+        </tr>
+        @endforeach
+    </table>
+</body>
+</html>
+```
+
+#### 5. Menguji Hasilnya di Browser
+Sekarang mari jalankan *Development Server* bawaan Laravel menggunakan Command-Line / Terminal.
+
+**Command:**
+```bash
+php artisan serve
+```
+
+Kunjungi `http://127.0.0.1:8000/level` atau `localhost:8000/level` melalui *Web Browser*. Pastikan Output tabel yang ditarik dari basis data berhasil tertampil seluruhnya oleh view.
+
+![Screenshot Hasil View Level](screenshot/view_level.png)
+*Output rendering di browser pada URL `/level`*
+
+---
