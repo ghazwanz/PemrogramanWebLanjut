@@ -11,6 +11,7 @@
 - [Praktikum 1 - Properti $fillable dan $guarded](#praktikum-1---properti-fillable-dan-guarded)
 - [Praktikum 2.1 - Retrieving Single Models](#praktikum-21---retrieving-single-models)
 - [Praktikum 2.2 - Not Found Exceptions](#praktikum-22---not-found-exceptions)
+- [Praktikum 2.3 - Retrieving Aggregates](#praktikum-23---retrieving-aggregates)
 
 ---
 
@@ -298,5 +299,47 @@ Apabila kita menggunakan fungsi iterasi biasa `first()` dan bukannya `firstOrFai
 
 ![Screenshot Error ModelNotFound](screenshot/404-nf.png)
 *Output halaman error 404 dari web server Laravel atas ModelNotFoundException*
+
+---
+
+## Praktikum 2.3 - Retrieving Aggregates
+
+### Tujuan
+Menggunakan fungsi bawaan agregasi SQL melalui Eloquent (seperti `count`, `max`, `min`, `avg`, `sum`) guna mengambil data rekap analitik berbentuk angka/nilai konkrit (bukan berupa collection objek dari baris tabel). 
+
+### Langkah-Langkah Praktikum
+
+#### 1. Menguji Pencarian Aggregate dengan `count()`
+Pada percobaan kali ini, kita akan menghitung jumlah pengguna yang memiliki role `level_id = 2` (Manager). Buka `UserController.php` dan update source kodenya menggunakan kueri metode `count()`.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        // $user = UserModel::where('username', 'manager9')->firstOrFail();
+        $user = UserModel::where('level_id', 2)->count();
+        // dd($user);
+        return view('user', ['data' => $user]);
+    }
+```
+
+Karena variabel agregat ini sekarang me-return skalar integer secara spesifik (hanya murni nilai angka total tanpa skema properties layaknya sebuah object), kita perlu menyesuaikan kembali views `user.blade.php` agar dapat me-render nilainya tanpa menimbulkan syntax error iterasi:
+
+**Code (user.blade.php):**
+```html
+    <table border="1" cellpadding="2" cellspacing="0">
+        <tr>
+            <th>Jumlah Pengguna</th>
+        </tr>
+        <tr>
+            <td>{{ $data }}</td>
+        </tr>
+    </table>
+```
+
+**Penjelasan:** *Method* `count()` merepresentasikan *Function Database* `COUNT()` yang berjalan di belakang layar. Karena kita memiliki 3 data entri yang memegang ID level manajer (contoh dari seeder dan tambahan baru `"manager_dua"` serta `"manager_tiga"`), angka **3** dicetak berkat query builder Eloquent.
+
+![Screenshot Count Aggregate](screenshot/P2-3-CountFunction.png)
+*Output jumlah pengguna menggunakan fungsi count() pada method index()*
 
 ---
