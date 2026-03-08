@@ -13,6 +13,7 @@
 - [Praktikum 2.2 - Not Found Exceptions](#praktikum-22---not-found-exceptions)
 - [Praktikum 2.3 - Retrieving Aggregates](#praktikum-23---retrieving-aggregates)
 - [Praktikum 2.4 - Retrieving or Creating Models](#praktikum-24---retrieving-or-creating-models)
+- [Praktikum 2.5 - Attribute Changes](#praktikum-25---attribute-changes)
 
 ---
 
@@ -429,4 +430,58 @@ Metodologi pencarian saat `firstOrNew` diberikan kondisi query data yang sudah e
 ```
 **Hasil:** Controller menampilkan data User eksisting dengan baris User ID=2 (manager), record tidak diduplikasikan maupun dimodifikasi valuenya pada struktur basis datanya.
 
+---
+
+## Praktikum 2.5 - Attribute Changes
+
+### Tujuan
+Menggunakan metode status flag bawaan objek model dari *Eloquent* yaitu `isDirty()`, `isClean()`, dan `wasChanged()` untuk memeriksa apakah atribut (field data) pada memori lokal saat ini telah diketik atau dimodifikasi sebelum/sesudah query `save()` dijalankan ke database.
+
+### Langkah-Langkah Praktikum
+
+Pada percobaan ini, kita akan membuat satu data user menggunakan `UserModel::create()`, memodifikasi value kolom `username`-nya secara *in-memory* menggunakan pengenal Objek (bukan query UPDATE), lalu mengecek state dari properti objek tersebut.
+
+Buka file `UserController.php`, lalu buat baris percobaannya.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::create([
+            'username' => 'manager11',
+            'nama' => 'Manager11',
+            'level_id' => 2,
+            'password' => Hash::make('12345'),
+        ]);
+
+        $user->username = 'manager12';
+
+        $user->isDirty(); // true
+        $user->isDirty('username'); // true
+        $user->isDirty('nama'); // false
+        $user->isClean(); // false
+        $user->isClean('username'); // false
+        $user->isClean('nama'); // true
+
+        $user->save();
+
+        $user->isDirty(); // false
+        $user->isClean(); // true
+        $user->wasChanged(); // true
+        $user->wasChanged('username'); // true
+        $user->wasChanged(['username', 'level_id']); // true
+        $user->wasChanged('nama'); // false
+        dd($user->wasChanged(['nama', 'username']));
+
+        return view('user', ['data' => $user]);
+    }
+```
+
+**Penjelasan Tahapan Eksekusi Code:**
+
+1. **Inisiasi & Perubahan (*Dirty State*):** Variabel *user* dibuat dan langsung di-insert ke tabel. Variabel tersebut berada pada memori RAM yang berisi instance Data dengan nilai awal. Programmer lalu menimpa field `username` dari `'manager11'` menjadi `'manager12'`. Karena *assignment* operasi di memori ini belum di-*save* ke DBMS, parameter flag `isDirty()` untuk keseluruhan tabel maupun kolom `username` akan mengembalikan `TRUE` (data kotor/berubah di memori). Hal yang sama berlaku pada `isClean('username')` yang otomatis menjadi `FALSE` (kebalikan dari metode *Dirty*). Parameter tidak disentuh seperti `'nama'` memegang angka mutlak bawaannya sehingga nilainya *Clean* (`isClean('nama') = TRUE`).
+2. **Commiting to Model (`save()`):** Ketika state yang *kotor* tadi (`manager12`) dikonfirmasikan oleh driver PDO melalui *method* `$user->save()`, perubahan tersebut dibekukan (dimasukkan permanent) ke dalam tabel `m_user`.
+3. **Paska Implementasi (`wasChanged`):** Seusai instance tersimpan utuh, state `isDirty()` kembali bernilai `FALSE` dan `isClean()` berefresh otomatis menjadi `TRUE`! Lalu, demi mencaritahu history / log perubahan apa saja yang telah memodifikasi instance Database tersebut selama eksekusi controller berjalan, fungsi detektor `wasChanged()` menahan history-nya (Contoh: `wasChanged('username') = TRUE` karena memang dirubah satu cycle ke belakang; dan sebaliknya untuk `nama`).
+
+![Screenshot firstOrCreate](screenshot/P2-5.png)
 ---
