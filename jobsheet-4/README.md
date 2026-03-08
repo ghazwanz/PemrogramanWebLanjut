@@ -9,6 +9,7 @@
 
 ## Daftar Isi
 - [Praktikum 1 - Properti $fillable dan $guarded](#praktikum-1---properti-fillable-dan-guarded)
+- [Praktikum 2.1 - Retrieving Single Models](#praktikum-21---retrieving-single-models)
 
 ---
 
@@ -157,5 +158,96 @@ Setelah diperbaiki, ketika dijalankan pada browser, data `Manager 3` akan berhas
 
 ![Screenshot User Manager 3](screenshot/P1-Fillable.png) 
 *Output rendering pengguna setelah perbaikan Mass Assignment.*
+
+---
+
+## Praktikum 2.1 - Retrieving Single Models
+
+### Tujuan
+Mengambil data tunggal (satu baris data) dari basis data menggunakan metode `find()`, `first()`, dan `firstWhere()` dengan exception handling menggunakan `findOr` pada Eloquent ORM Laravel.
+
+### Langkah-Langkah Praktikum
+
+#### 1. Mengambil Single Data dengan `find`
+Metode `find` digunakan untuk mengambil model Eloquent berdasarkan primary key-nya. Buka `UserController.php` dan modifikasi fungsinya. Pada `user.blade.php`, sesuaikan pemanggilan view karena struktur yang dikembalikan bukan lagi *array/collection*, melainkan *single object*.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::find(1);
+        return view('user', ['data' => $user]);
+    }
+```
+
+**Code (user.blade.php - Bagian Isi Tabel):**
+```html
+        <tr>
+            <td>{{ $data->user_id }}</td>
+            <td>{{ $data->username }}</td>
+            <td>{{ $data->nama }}</td>
+            <td>{{ $data->level_id }}</td>
+        </tr>
+```
+
+**Penjelasan:** Pada percobaan ini, data dengan `user_id` bernilai 1 (yang diwakili oleh user `admin`) akan diambil dan ditampilkan pada layar tanpa memerlukan fungsi perulangan (iterasi) *foreach* di berkas `.blade.php`.
+
+#### 2. Mengambil Single Data dengan `first`
+Metode `first` mengambil baris (record) pertama hasil pencarian yang sesuai dengan kueri kondisi sebelum metode ini (berdasarkan *order*). Mengganti query di `UserController.php`:
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::where('level_id', 1)->first();
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan:** Eloquent mencari seluruh tabel `m_user` dengan klausa limit kondisi `level_id = 1`. Di MySQL, ia akan mengembalikan deret teratas/pertama yang cocok dengan kondisi ini (pada database, kebetulan merupakan `admin`).  
+
+#### 3. Mengambil Single Data dengan `firstWhere`
+Metode `firstWhere` merupakan *syntactic sugar*/shortcut untuk pemanggilan klausa `where(...)->first()`. Metode ini bekerja sama persis namun lebih ringkas untuk dibaca programmer.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::firstWhere('level_id', 1);
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan:** Sama seperti Langkah 2, data pertama dengan kolom kondisi `level_id = 1` ditarik dan dikirimkan ke View untuk dirender.  
+
+#### 4. Menangani Exception Menggunakan `findOr`
+Metode `findOr` atau `firstOr` dieksekusi ketika data yang dicari tidak ada, sehingga memicu callback/closure function yang kita sertakan. Pada kasus ini, fungsi closure dieksekusi untuk memanggil `abort(404)`.
+
+**Kasus A: Nilai Data Ditemukan (ID = 1)**
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::findOr(1, ['username', 'nama'], function () {
+            abort(404);
+        });
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan:** Karena User dengan ID = 1 tersedia di database, fungsi berjalan layaknya `find()`, namun yang diambil hanyalah field `username` dan `nama`. Karenanya, `user_id` dan `level_id` pada tampilan tabel merender bentuk kosong karena datanya tersaring *(filtered select)* di level basis data.
+
+![Screenshot User Manager 3](screenshot/P2-1-FindOr.png) 
+*Output rendering pengguna setelah perbaikan Mass Assignment.*
+
+**Kasus B: Nilai Data Tidak Ditemukan (ID = 20)**
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::findOr(20, ['username', 'nama'], function () {
+            abort(404);
+        });
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan Singkat:** Ketika query mendeteksi tidak beradanya User dengan ID 20, Eloquent men-trigger *closure fallback* di parameter ketiga. Fungsi `abort(404)` langsung mematikan response web dan melempar halaman error `404 Not Found` built-in Laravel ke sisi browser client.
 
 ---
