@@ -10,6 +10,7 @@
 ## Daftar Isi
 - [Praktikum 1 - Properti $fillable dan $guarded](#praktikum-1---properti-fillable-dan-guarded)
 - [Praktikum 2.1 - Retrieving Single Models](#praktikum-21---retrieving-single-models)
+- [Praktikum 2.2 - Not Found Exceptions](#praktikum-22---not-found-exceptions)
 
 ---
 
@@ -249,5 +250,53 @@ Metode `findOr` atau `firstOr` dieksekusi ketika data yang dicari tidak ada, seh
     }
 ```
 **Penjelasan Singkat:** Ketika query mendeteksi tidak beradanya User dengan ID 20, Eloquent men-trigger *closure fallback* di parameter ketiga. Fungsi `abort(404)` langsung mematikan response web dan melempar halaman error `404 Not Found` built-in Laravel ke sisi browser client.
+
+---
+
+## Praktikum 2.2 - Not Found Exceptions
+
+### Tujuan
+Memahami cara Laravel *Eloquent ORM* menangani pencarian baris data yang gagal atau tidak ditemukan menggunakan varian kueri Exception (`findOrFail` dan `firstOrFail`). Alih-alih mengembalikan list array kosong, model ini akan melempar error HTTP `404 Not Found`.
+
+### Langkah-Langkah Praktikum
+
+#### 1. Menguji Pencarian Exception dengan `findOrFail`
+Menjalankan pencarian instance model yang kita yakini bernilai ada (`id = 1`) pada basis data menggunakan `findOrFail()`.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        // $user = UserModel::findOr(1, ['username', 'nama'], function () {
+        //     abort(404);
+        // });
+
+        $user = UserModel::findOrFail(1);
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan:** Sama seperti `find()`, parameter mencerminkan *Primary Key*. Karena baris ID kelas 1 tersedia di tabel `m_user`, eksekusi skrip ini di controller berjalan normal (*Success 200 OK*), merender tampilan tabel dengan isi data dari identitas Administrator. Metode `...OrFail` hanya melempar halaman Error Exception apabila data baris tersebut benar-benar kosong.
+
+![Screenshot findOrFail Sukses](screenshot/P2-2-FindOrFailOK.png)
+*Output rendering pengguna saat ID ditemukan pada pencarian findOrFail()*
+
+#### 2. Mensimulasikan Kegagalan dengan `firstOrFail`
+Pada simulasi kali ini, kita mengambil entitas skema dari parameter kolom string tertentu dengan *username* `manager9`. Asumsinya `manager9` tidak pernah didaftarkan pada Seeder database kita.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        // $user = UserModel::findOrFail(1);
+        $user = UserModel::where('username', 'manager9')->firstOrFail();
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan:** Saat dijalankan, Laravel memicu error `Illuminate\Database\Eloquent\ModelNotFoundException` dan melemparkan respon halaman *Standard Laravel 404 Exception Not Found*.
+
+Apabila kita menggunakan fungsi iterasi biasa `first()` dan bukannya `firstOrFail()`, backend aplikasi umumnya akan mengalami *Trying to get property of non-object* (error 500) pada blok view karena variable array yang ditarik bernilai `NULL`. Dengan memanfaatkan `OrFail()`, kita mendelegasikan status respon kesalahan standar REST API kepada pengguna secara aman tanpa merusak logic template.
+
+![Screenshot Error ModelNotFound](screenshot/404-nf.png)
+*Output halaman error 404 dari web server Laravel atas ModelNotFoundException*
 
 ---
