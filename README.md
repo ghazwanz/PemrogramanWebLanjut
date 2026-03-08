@@ -22,6 +22,7 @@ Setiap jobsheet memiliki dokumentasi lengkap di file `README.md` masing-masing:
 - [📄 Dokumentasi Jobsheet 1](jobsheet-1/)
 - [📄 Dokumentasi Jobsheet 2](jobsheet-2/)
 - [📄 Dokumentasi Jobsheet 3](jobsheet-3/)
+- [📄 Dokumentasi Jobsheet 4](jobsheet-4/)
 
 ---
 
@@ -64,6 +65,16 @@ Praktikum memanipulasi skema dan data database menggunakan Query Builder & Eloqu
   - **Praktikum 5:** Manajemen Basis Data melalui `Query Builder`
   - **Praktikum 6:** `Eloquent ORM` (Retrieval & Mutasi Rekaman Data)
 
+### Jobsheet 4 - Fitur Lanjutan Eloquent ORM & CRUD
+Praktikum memanipulasi data menggunakan instance Model Eloquent dan Relationship
+- **Direktori:** [`jobsheet-4/`](jobsheet-4/)
+- **Materi:**
+  - **Praktikum 1:** Properti `$fillable` dan `$guarded` (*Mass Assignment*)
+  - **Praktikum 2.1 - 2.4:** Retrieving Single/Aggregates Models dan *Not Found Exceptions*, serta Retrieve/Create Models
+  - **Praktikum 2.5:** *Attribute Changes*
+  - **Praktikum 2.6:** Create, Read, Update, Delete (CRUD)
+  - **Praktikum 2.7:** Relationships
+
 ---
 
 ## 🚀 Cara Menjalankan Project
@@ -94,6 +105,9 @@ Praktikum memanipulasi skema dan data database menggunakan Query Builder & Eloqu
    
    # Untuk Jobsheet 3 (POS)
    cd jobsheet-3
+   
+   # Untuk Jobsheet 4
+   cd jobsheet-4
    ```
 
 3. **Install dependencies**
