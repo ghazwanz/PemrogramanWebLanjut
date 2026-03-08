@@ -12,6 +12,7 @@
 - [Praktikum 2.1 - Retrieving Single Models](#praktikum-21---retrieving-single-models)
 - [Praktikum 2.2 - Not Found Exceptions](#praktikum-22---not-found-exceptions)
 - [Praktikum 2.3 - Retrieving Aggregates](#praktikum-23---retrieving-aggregates)
+- [Praktikum 2.4 - Retrieving or Creating Models](#praktikum-24---retrieving-or-creating-models)
 
 ---
 
@@ -341,5 +342,91 @@ Karena variabel agregat ini sekarang me-return skalar integer secara spesifik (h
 
 ![Screenshot Count Aggregate](screenshot/P2-3-CountFunction.png)
 *Output jumlah pengguna menggunakan fungsi count() pada method index()*
+
+---
+
+## Praktikum 2.4 - Retrieving or Creating Models
+
+### Tujuan
+Menggunakan metode pencarian *(retrieving)* yang sekaligus dipasangkan dengan skema inisiasi *(creating)* obyek Eloquent bernama `firstOrCreate` dan `firstOrNew`. Metode ini memudahkan kita melakukan validasi otomatis "Cari jika ada, Buat jika belum ada" tanpa melakukan percabangan `if (is_null($user))` secara manual. 
+
+### Langkah-Langkah Praktikum
+
+#### 1. Membuat Data Baru Menggunakan `firstOrCreate`
+Pertama-tama kita melakukan perombakan kembali pada `user.blade.php` sehingga dapat menampilkan format tabel standar yang memanjang `foreach`/menampilkan properti Object Model tunggal (tidak lagi mencetak atribut Aggregate count tunggal).
+
+Selanjutnya, di `UserController.php`, ujikan fungsi insert dan find berikut ini untuk membuat pengguna `manager22`.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::firstOrCreate(
+            ['username' => 'manager22'],
+            ['nama' => 'Manager Dua Dua', 'password' => Hash::make('12345'), 'level_id' => 2]
+        );
+
+        return view('user', ['data' => $user]);
+    }
+```
+**Penjelasan:** Parameter pertama dari metode ini (`['username' => 'manager22']`) berperan sebagai kondisi klausa "Cari/Where". Karena data `manager22` belum ada di Database tabel `m_user`, sistem otomatis menyisipkan record *(Insert)* berbekal tambahan atribut dari parameter kedua (seperti `nama`, `password`, dan `level_id`) agar tidak melanggar aturan constraint MySQL. Setelah di-*create*, instance-nya divalidasi dan di-*return* sebagai Single Model dan ditampilkan ke Views.
+
+![Screenshot firstOrCreate](screenshot/P2-4-firstOrCreate1.png)
+*Output manager22 berhasil di-insert dari kueri firstOrCreate()*
+
+<br>
+
+*(Catatan:* Pengecekan *Error HTTP 500*: Apabila Anda menghapus atribut `password` di properti `$fillable` Model saat mengerjakan Praktikum 1 sebelumnya, silakan tambahkan kembali *tag* parameter `password` tersebut agar insert berjalan baik dan lolos pengecekan MassAssignmentVulnerability).*
+
+#### 2. Mensimulasikan `firstOrCreate` Pada Data Eksisting 
+Kini, kita coba memanggil *method* yang persis sama namun mengujikannya ke identitas kolom `username` yang diketahui telah eksis di database (seperti nilai record `manager` dari table seeder).
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::firstOrCreate(
+            ['username' => 'manager'],
+            ['nama' => 'Manager', 'password' => Hash::make('12345'), 'level_id' => 2]
+        );
+        return view('user', ['data' => $user]);
+    }
+```
+
+**Penjelasan Singkat:** Nilai param array kedua akan murni diabaikan. Eloquent berhasil menemukan instance User `manager` saat mencari klausulnya. Alhasil, yang dijalankan hanya query pembacaan data original *(Retrieve)* biasa dan me-return baris entitas manager dari ID 2.
+
+#### 3. Membuat Basis Model Baru Menggunakan `firstOrNew`
+Metode `firstOrNew` memiliki tujuan yang persis sama (mengambil data yang ada, atau membuat data baru), **tetapi jika record belum ditemukan, instance model yang baru tersebut TIDAK akan otomatis di-insert/disimpan ke dalam database**. Untuk dapat menulis ke tabel, pengguna harus memanggil metode `->save()` setelahnya.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::firstOrNew(
+            ['username' => 'manager33'],
+            ['nama' => 'Manager Tiga Tiga', 'password' => Hash::make('12345'), 'level_id' => 2]
+        );
+        $user->save();
+        return view('user', ['data' => $user]);
+    }
+```
+
+**Penjelasan Singkat:** `manager33` berhasil dipanggil karena belum ada pada tabel dan ia diinisialisasi terlebih dahulu ke instan virtual PHP. Kemudian model instance tersebut *di-apply* perubahannya ke database `m_user` dengan method `save()`.
+
+#### 4. Mensimulasikan `firstOrNew` Pada Data Eksisting 
+Metodologi pencarian saat `firstOrNew` diberikan kondisi query data yang sudah eksis di Database sama halnya dengan `firstOrCreate`.
+
+**Code (UserController.php):**
+```php
+    public function index()
+    {
+        $user = UserModel::firstOrNew(
+            ['username' => 'manager'],
+            ['nama' => 'Manager', 'password' => Hash::make('12345'), 'level_id' => 2]
+        );
+        return view('user', ['data' => $user]);
+    }
+```
+**Hasil:** Controller menampilkan data User eksisting dengan baris User ID=2 (manager), record tidak diduplikasikan maupun dimodifikasi valuenya pada struktur basis datanya.
 
 ---
