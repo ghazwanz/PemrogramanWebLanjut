@@ -14,6 +14,7 @@
 - [Praktikum 2.3 - Retrieving Aggregates](#praktikum-23---retrieving-aggregates)
 - [Praktikum 2.4 - Retrieving or Creating Models](#praktikum-24---retrieving-or-creating-models)
 - [Praktikum 2.5 - Attribute Changes](#praktikum-25---attribute-changes)
+- [Praktikum 2.6 - Create, Read, Update, Delete (CRUD)](#praktikum-26---create-read-update-delete-crud)
 
 ---
 
@@ -485,3 +486,299 @@ Buka file `UserController.php`, lalu buat baris percobaannya.
 
 ![Screenshot firstOrCreate](screenshot/P2-5.png)
 ---
+
+## Praktikum 2.6 - Create, Read, Update, Delete (CRUD)
+
+### Tujuan
+Pada praktikum ini, kita akan membuat sekumpulan antarmuka lengkap (*Create, Read, Update, Delete*) yang berinteraksi langsung dengan model `UserModel` dan Database menggunakan fitur bawaan Laravel dan Eloquent ORM. 
+
+### Langkah-Langkah Praktikum
+
+#### 1. Menyiapkan Tampilan Utama (Read)
+Sebelumnya kita telah mencoba berbagai *method retrieving*, sekarang kita akan memunculkan seluruh data tabel yang ada ke sebuah antarmuka (*View*). 
+
+Pertama, perbarui kode pada list *views* `resources/views/user.blade.php`. Tambahkan kolom *Aksi* untuk kelengkapan navigasi CRUD (Tambah, Ubah, Hapus).
+
+**Code (user.blade.php):**
+```html
+<body>
+    <h1>Data User</h1>
+    <a href="/user/tambah">+ Tambah User</a>
+    <table border="1" cellpadding="2" cellspacing="0">
+        <tr>
+            <td>ID</td>
+            <td>Username</td>
+            <td>Nama</td>
+            <td>ID Level Pengguna</td>
+            <td>Aksi</td>
+        </tr>
+        @foreach ($data as $d)
+        <tr>
+            <td>{{ $d->user_id }}</td>
+            <td>{{ $d->username }}</td>
+            <td>{{ $d->nama }}</td>
+            <td>{{ $d->level_id }}</td>
+            <td><a href="/user/ubah/{{ $d->user_id }}">Ubah</a> | <a href="/user/hapus/{{ $d->user_id }}">Hapus</a></td>
+        </tr>
+        @endforeach
+    </table>
+</body>
+```
+
+Kemudian, perbarui Controller untuk mencetak semua baris (*Read All*). Buka `UserController.php` dan sesuaikan metode `index()`.
+
+**Code (UserController.php - index):**
+```php
+    public function index()
+    {
+        $user = UserModel::all();
+        return view('user', ['data' => $user]);
+    }
+```
+
+#### 2. Menyiapkan Form Tambah Data (Create)
+Berdasarkan tombol link yang telah kita pasang: `<a href="/user/tambah">`, navigasi ini harus ditangkap dalam Routing. Modifikasi file `routes/web.php` dan tambahkan rute *GET* tambahan.
+
+**Code (routes/web.php):**
+```php
+Route::get('/user/tambah', [UserController::class, 'tambah']);
+```
+
+Setelah rute selesai didaftarkan, daftarkan fungsi Controller pemroses permintaan tersebut untuk memanggil *template blade*.
+
+**Code (UserController.php - tambah):**
+```php
+    public function tambah()
+    {
+        return view('user_tambah');
+    }
+```
+
+Langkah terakhir untuk seksi ini, kita akan membuat *file View* baru, tepatnya `resources/views/user_tambah.blade.php`. Tampilan formulir ini akan berperan sebagai wadah input pengguna baru.
+
+**Code (user_tambah.blade.php):**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah User</title>
+</head>
+<body>
+    <h1>Form Tambah Data User</h1>
+    <form method="post" action="/user/tambah_simpan">
+
+        {{ csrf_field() }}
+
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Masukan Username">
+        <br>
+        <label>Nama</label>
+        <input type="text" name="nama" placeholder="Masukan Nama">
+        <br>
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Masukan Password">
+        <br>
+        <label>Level ID</label>
+        <input type="number" name="level_id" placeholder="Masukan ID Level">
+        <br><br>
+        <input type="submit" class="btn btn-success" value="Simpan">
+
+    </form>
+</body>
+</html>
+```
+
+#### 3. Memproses Penyimpanan Data (Create)
+Formulir yang dikirim melalui antarmuka harus diproses oleh program di sisi *backend*. Kita mendefinisikan rute *POST* untuk menyimpan ke *database*.
+
+**Code (routes/web.php):**
+```php
+Route::post('/user/tambah_simpan', [UserController::class, 'tambah_simpan']);
+```
+
+Setelah itu, programkan method simpan ini ke file `UserController.php`. Menggunakan metode `UserModel::create()`, kita akan menangkap form `$request` lalu mengembalikannya kembali (*redirect*) ke halaman user bila berhasil.
+
+**Code (UserController.php - tambah_simpan):**
+```php
+    public function tambah_simpan(Request $request)
+    {
+        UserModel::create([
+            'username' => $request->username,
+            'nama' => $request->nama,
+            'password' => Hash::make($request->password),
+            'level_id' => $request->level_id
+        ]);
+
+        return redirect('/user');
+    }
+```
+
+#### 4. Menyiapkan Form Ubah Data (Update)
+Setelah fungsi simpan berhasil dijalankan, selanjutnya adalah menyediakan opsi merubah (*Update*) record yang lama. Terdapat rute baru dengan `id` dinamis:
+
+**Code (routes/web.php):**
+```php
+Route::get('/user/ubah/{id}', [UserController::class, 'ubah']);
+```
+
+Method controllernya harus mengambil model mana yang tepat melalui id tersebut, lalu memanggil view `user_ubah.blade.php`.
+
+**Code (UserController.php - ubah):**
+```php
+    public function ubah($id)
+    {
+        $user = UserModel::find($id);
+        return view('user_ubah', ['data' => $user]);
+    }
+```
+
+View halaman `resources/views/user_ubah.blade.php` memiliki satu form baru yang nilai awalnya diambil dari isi model.
+
+**Code (user_ubah.blade.php):**
+```html
+<body>
+    <h1>Form Ubah Data User</h1>
+    <a href="/user">Kembali</a>
+    <br><br>
+
+    <form method="post" action="/user/ubah_simpan/{{ $data->user_id }}">
+        
+        {{ csrf_field() }}
+        {{ method_field('PUT') }}
+
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Masukan Username" value="{{ $data->username }}">
+        <br>
+        <label>Nama</label>
+        <input type="text" name="nama" placeholder="Masukan Nama" value="{{ $data->nama }}">
+        <br>
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Masukan Password" value="{{ $data->password }}">
+        <br>
+        <label>Level ID</label>
+        <input type="number" name="level_id" placeholder="Masukan ID Level" value="{{ $data->level_id }}">
+        <br><br>
+        <input type="submit" class="btn btn-success" value="Ubah">
+
+    </form>
+</body>
+```
+
+#### 5. Menyimpan Perubahan Data (Update)
+Setelah form dikirim, kita harus mendefinisikan *Route* bermetode HTTP PUT agar sesuai dengan standar operasi pengubahan objek. Karena kita membawa ID user tersebut, rute di *web.php* ditulis seperti ini:
+
+**Code (routes/web.php):**
+```php
+Route::put('/user/ubah_simpan/{id}', [UserController::class, 'ubah_simpan']);
+```
+
+Method Controller-nya diprogram untuk menarik instance objek terlebih dahulu melalui identifier ID, memodifikasi isinya (_attribute mapping_), baru menyimpannya (`->save()`) di dalam database dan di *redirect* ke tabel utama.
+
+**Code (UserController.php - ubah_simpan):**
+```php
+    public function ubah_simpan($id, Request $request)
+    {
+        $user = UserModel::find($id);
+
+        $user->username = $request->username;
+        $user->nama = $request->nama;
+        $user->password = Hash::make($request->password);
+        $user->level_id = $request->level_id;
+
+        $user->save();
+
+        return redirect('/user');
+    }
+```
+
+#### 6. Menghapus Data (Delete)
+Link "Hapus" pada tabel *view* awal kita telah didefinisikan untuk meng-hit endpoint `GET /user/hapus/{id}`. Ini adalah rute yang akan kita siapkan untuk menghapus data.
+
+**Code (routes/web.php):**
+```php
+Route::get('/user/hapus/{id}', [UserController::class, 'hapus']);
+```
+
+Sedangkan *business logic* hapusnya memanfaatkan fungsi bawaan Eloquent `delete()`. Prosesnya berjalan sama seperti perubahaan atribut; harus di-*find()* terlebih dahulu model terkait lalu dihapus dari memori server.
+
+**Code (UserController.php - hapus):**
+```php
+    public function hapus($id)
+    {
+        $user = UserModel::find($id);
+        $user->delete();
+
+        return redirect('/user');
+    }
+```
+
+Praktikum CRUD dasar menggunakan Eloquent Models telah berhasil. Sistem sekarang dapat merekam input pengguna baru, menampilkan seluruh daftarnya, memperbaiki data pengguna lama, dan menghapusnya.
+
+Berikut adalah tampilan dari CRUD yang telah dibuat:
+![Tampilan CRUD User](screenshot/crud_user_s.png)
+
+---
+
+### Praktikum 2.7: Relationships
+
+Eloquent memungkinkan kita untuk menghubungkan model satu dengan yang lainnya (relasi tabel). Pada praktikum ini, kita merealisasikan relasi `BelongsTo` (Setiap user terikat pada satu level).
+
+#### 1. Menambahkan Method pada Model
+Sebutkan hubungan model di `UserModel.php` ke `LevelModel` (buat `LevelModel.php` jika belum ada). 
+
+**Code (`app/Models/UserModel.php`):**
+```php
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+// ... (isi lain class)
+
+    public function level(): BelongsTo
+    {
+        return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
+    }
+```
+
+#### 2. Eager Loading Data Tabel Berelasi
+Buka `UserController.php` dan pada fungsi `index()`, ganti `UserModel::all()` menjadi query builder dengan `with('level')`. Method ini disebut Eager Loading dan memastikan data level di-load efisien.
+
+**Code (`UserController.php` - method index):**
+```php
+    public function index()
+    {       
+        $user = UserModel::with('level')->get();
+        return view('user', ['data' => $user]);
+    }
+```
+
+#### 3. Menampilkan ke View
+Terakhir, modifikasi view `user.blade.php` sehingga menampilkan field dari foreign table (`m_level`). Karena *eager loading* sudah menginjeksikan data level ke dalam object collection user, nilainya dapat diakses melalui property object `level`.
+
+**Code (`resources/views/user.blade.php`):**
+```html
+        <tr>
+            <td>ID</td>
+            <td>Username</td>
+            <td>Nama</td>
+            <td>ID Level Pengguna</td>
+            <td>Kode Level</td>
+            <td>Nama Level</td>
+            <td>Aksi</td>
+        </tr>
+        @foreach ($data as $d)
+        <tr>
+            <td>{{ $d->user_id }}</td>
+            <td>{{ $d->username }}</td>
+            <td>{{ $d->nama }}</td>
+            <td>{{ $d->level_id }}</td>
+            <td>{{ $d->level->level_kode }}</td>
+            <td>{{ $d->level->level_nama }}</td>
+            <td><a href="/user/ubah/{{ $d->user_id }}">Ubah</a> | <a href="/user/hapus/{{ $d->user_id }}">Hapus</a></td>
+        </tr>
+        @endforeach
+```
+
+Dengan langkah di atas, kita telah berhasil menampilkan data level spesifik yang berhubungan langsung dengan foreign key pada tabel user.
+
+Berikut adalah tampilan dari Relationship yang telah dibuat:
+![Tampilan Relationship](screenshot/crud_user.png)
+---
+**-- Akhir dari Jobsheet 4 --**
