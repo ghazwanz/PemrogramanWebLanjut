@@ -16,6 +16,7 @@ class PostsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('title')
                     ->searchable()
@@ -33,6 +34,10 @@ class PostsTable
                 IconColumn::make('published')
                     ->boolean(),
                 TextColumn::make('published_at')
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Created At')
                     ->dateTime()
                     ->sortable(),
             ])

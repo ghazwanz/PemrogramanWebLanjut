@@ -1,4 +1,4 @@
-# Laporan Praktikum Jobsheet 7-3 (Pertemuan 9)
+# Laporan Praktikum Jobsheet 8 (Pertemuan 10)
 
 # Pemrograman Web Lanjut
 
@@ -10,188 +10,220 @@
 | NIM | 244107020151 |
 | Kelas | TI-2F |
 | Mata Kuliah | Pemrograman Web Lanjut |
-| Topik | Implementasi Tabs pada Info List di Filament |
+| Topik | Implementasi Sorting pada Table Filament |
 
 ---
 
 ## Capaian Pembelajaran
 
 Setelah mengikuti praktikum ini, mahasiswa mampu:
-1. Menggunakan komponen Tabs pada Info List.
-2. Mengelompokkan informasi detail ke dalam beberapa tab.
-3. Menambahkan icon dan badge pada tab.
-4. Mengubah orientasi tab (horizontal dan vertical).
-5. Mendesain halaman View agar lebih ringkas dan user-friendly.
+1. Menambahkan fitur sorting kolom pada tabel Filament
+2. Menggunakan method `sortable()`
+3. Menerapkan sorting pada kolom relasi
+4. Menerapkan sorting pada kolom tanggal
+5. Mengatur default sorting tabel
 
-Framework yang digunakan: Filament.
+Framework yang digunakan: Filament
 
 ---
 
 ## A. Latar Belakang
 
-Pada pertemuan sebelumnya, detail Product sudah ditampilkan melalui Info List berbasis Section. Saat data semakin banyak, halaman detail menjadi panjang dan perlu banyak scroll.
+Pada modul Post, kita sudah memiliki tabel dengan kolom:
+- Image
+- Title
+- Slug
+- Category
+- Created At
 
-Solusi praktikum ini adalah mengganti Section menjadi Tabs agar informasi dibagi per kategori dan bisa diakses dengan klik.
+Namun saat data bertambah banyak, pengguna membutuhkan fitur:
+- Urut berdasarkan Title (A–Z / Z–A)
+- Urut berdasarkan Tanggal terbaru
+- Urut berdasarkan Category
 
-Pembagian tab:
-- Tab 1: Product Details
-- Tab 2: Product Price and Stock
-- Tab 3: Image and Status
-
----
-
-## B. Konsep Tabs di Info List
-
-Tabs dipakai untuk:
-- Membagi informasi ke beberapa halaman kecil.
-- Mengurangi scrolling panjang.
-- Meningkatkan pengalaman pengguna pada halaman View.
+Filament menyediakan fitur sorting yang sangat sederhana.
 
 ---
 
-## C. Mengubah Section Menjadi Tabs
+## B. Konsep Sorting di Filament
 
-File yang diubah:
-- app/Filament/Resources/Products/Schemas/ProductInfolist.php
+Pada Laravel biasa, sorting membutuhkan:
+- Query manual
+- Kondisi orderBy
+- Parameter request
 
-Perubahan inti:
-- Struktur Section diganti ke `Tabs::make('Product Tabs')`.
-- Setiap kelompok data ditempatkan dalam `Tab::make(...)`.
-
-Import tambahan:
-- Filament\Schemas\Components\Tabs
-- Filament\Schemas\Components\Tabs\Tab
+Namun di Filament cukup dengan satu method:
+- `->sortable()`
 
 ---
 
-## D. Implementasi Tabs
+## C. Implementasi Sorting pada Kolom Title
 
-### Tab Product Details
-- icon: heroicon-o-academic-cap
-- menampilkan: name, id, sku (badge), description, created_at (date format)
+Buka file:
+- `app/Filament/Resources/Posts/Tables/PostsTable.php`
 
-### Tab Product Price and Stock
-- icon: heroicon-o-currency-dollar
-- badge dinamis berdasarkan stock
-- badgeColor dinamis (success atau warning)
-- menampilkan: price (format Rupiah), stock (dengan icon)
+Ubah kolom Title menjadi:
 
-### Tab Image and Status
-- icon: heroicon-o-photo
-- menampilkan: image, is_active (boolean icon), is_featured (boolean icon)
+- `TextColumn::make('title')
+	->sortable(),`
+
+Simpan dan refresh halaman.
+
+Hasil
+Klik header Title:
+- Klik 1 → Ascending (A–Z)
+- Klik 2 → Descending (Z–A)
 
 ---
 
-## E. Tampilan Tabs Horizontal
+## D. Sorting pada Kolom Slug
 
-Secara default tabs tampil horizontal, cocok untuk jumlah tab sedikit.
+`TextColumn::make('slug')
+	->sortable(),`
 
-## F. Mengubah Tabs Menjadi Vertical
+Refresh → Kolom Slug bisa diurutkan.
 
-Method yang ditambahkan:
-- `->vertical()`
+---
+
+## E. Sorting pada Relasi (Category)
+
+Jika ingin mengurutkan berdasarkan nama kategori:
+
+`TextColumn::make('category.name')
+	->sortable(),`
+
+Filament otomatis menangani join relasi.
+
+---
+
+## F. Sorting pada Kolom Tanggal
+
+Tambahkan kolom:
+
+`TextColumn::make('created_at')
+	->label('Created At')
+	->dateTime()
+	->sortable(),`
 
 Hasil:
-- Navigasi tab tampil vertikal.
-- Halaman detail lebih ringkas untuk data panjang.
+- Bisa diurutkan berdasarkan tanggal terbaru atau terlama.
 
 ---
 
-## G. Fitur Tambahan Tabs
+## G. Mengatur Default Sorting
+
+Jika ingin tabel otomatis urut berdasarkan Created At (Descending):
+
+Tambahkan pada konfigurasi table:
+
+`->defaultSort('created_at', 'desc')`
+
+Contoh lengkap:
+
+`public static function table(Table $table): Table
+{
+	return $table
+		->defaultSort('created_at', 'desc')
+		->columns([
+			TextColumn::make('title')->sortable(),
+			TextColumn::make('slug')->sortable(),
+		]);
+}`
+
+Artinya: Data terbaru tampil paling atas.
+
+---
+
+## H. Opsi Default Sort Lain
+
+| Opsi | Fungsi |
+| --- | --- |
+| asc | Urut naik (A–Z / 0–9) |
+| desc | Urut turun (Z–A / 9–0) |
+
+Contoh:
+`->defaultSort('created_at', 'desc')`
+
+---
+
+## I. Ringkasan Method Sorting
 
 | Method | Fungsi |
 | --- | --- |
-| icon() | Menambahkan icon pada tab |
-| badge() | Menambahkan badge pada tab |
-| badgeColor() | Mengubah warna badge |
-| columnSpanFull() | Membuat area full width |
-| vertical() | Mengubah orientasi tab |
+| `sortable()` | Mengaktifkan sorting kolom |
+| `defaultSort()` | Mengatur sorting default |
+| `dateTime()` | Format tanggal |
+| `label()` | Mengubah nama kolom |
 
 ---
 
-## H. Perbandingan Section vs Tabs
+## J. Hasil yang Diharapkan
 
-| Section | Tabs |
-| --- | --- |
-| Scroll panjang | Navigasi klik |
-| Semua tampil sekaligus | Terpisah per kategori |
-| Kurang ringkas | Lebih profesional |
-
----
-
-## I. Hasil yang Diharapkan
-
-Target praktikum tercapai:
-- Section berhasil diganti menjadi Tabs.
-- 3 tab berbeda berhasil dibuat.
-- Icon pada tiap tab aktif.
-- Badge pada tab aktif.
-- Orientasi vertical aktif.
+Mahasiswa berhasil:
+- Mengaktifkan `sortable` pada Title
+- Mengaktifkan `sortable` pada Slug
+- Mengaktifkan `sortable` pada relasi Category
+- Mengaktifkan `sortable` pada Created At
+- Mengatur default sorting (Created At desc)
 
 ---
 
-## J. Latihan Praktikum
+## K. Latihan Praktikum
 
-1. Tambahkan badge dinamis berdasarkan jumlah stok
+1. Aktifkan sorting pada semua kolom teks
 - [x] Selesai
 
-2. Tambahkan warna badge berbeda
+2. Buat default sorting berdasarkan Created At descending
 - [x] Selesai
 
-3. Ubah tampilan menjadi vertical
+3. Uji sorting ascending dan descending
 - [x] Selesai
 
-4. Tambahkan icon berbeda pada tiap tab
-- [x] Selesai
-
-5. Screenshot:
-- [x] Tabs horizontal (placeholder)
-- [x] Tabs vertical (placeholder)
-- [x] Tab dengan badge (placeholder)
-
-Data uji:
-- Product tersedia 4 data.
+4. Screenshot:
+- [x] Sorting Title Asc (placeholder)
+- [x] Sorting Title Desc (placeholder)
+- [x] Sorting Date Desc (placeholder)
 
 ---
 
-## K. Analisis and Diskusi
+## L. Analisis & Diskusi
 
-1. Kapan menggunakan Tabs dibanding Section?
-Saat detail data panjang dan perlu pengelompokan agar navigasi lebih nyaman.
+1. Mengapa sorting penting pada admin panel?
+Sorting penting untuk mempermudah administrator dalam mencari maupun mengorganisir data dalam jumlah besar agar lebih efisien dan cepat.
 
-2. Apa kelebihan Tabs untuk data panjang?
-Mengurangi scroll dan meningkatkan fokus pembacaan per kategori data.
+2. Apa perbedaan `sortable()` biasa dengan `defaultSort()`?
+`sortable()` membuat kolom tertentu bisa diklik oleh user untuk diurutkan (ascending/descending), sedangkan `defaultSort()` mengatur pengurutan data otomatis pertama kali tabel dimuat sebelum ada interaksi user.
 
-3. Apakah Tabs bisa digunakan pada Form juga?
-Bisa, Tabs juga cocok dipakai untuk memecah field form menjadi beberapa kelompok.
+3. Mengapa relasi tetap bisa di-sort?
+Karena Filament secara otomatis di belakang layar menangani `join` query antar tabel database untuk mengeksekusi order by berdasarkan kolom relasi tersebut.
 
-4. Bagaimana jika tab terlalu banyak?
-Gabungkan kategori yang mirip atau pecah data dengan pendekatan lain agar UI tidak membingungkan.
+4. Kapan kita menggunakan `desc` sebagai default?
+`desc` biasanya digunakan pada kolom waktu, seperti `created_at`, agar data atau entri yang paling baru ditambahkan muncul paling atas dan langsung terlihat oleh pengguna.
 
 ---
 
-## L. Lampiran Screenshot (Placeholder)
+## M. Lampiran Screenshot (Placeholder)
 
-### 1. Tabs Horizontal
+### 1. Sorting Title Asc
 
-![Tabs Horizontal](screenshot/01-tabs-horizontal.png)
+![Sorting Title Asc](screenshot/01-sorting-title-asc.png)
 
-### 2. Tabs Vertical
+### 2. Sorting Title Desc
 
-![Tabs Vertical](screenshot/02-tabs-vertical.png)
+![Sorting Title Desc](screenshot/02-sorting-title-desc.png)
 
-### 3. Tab dengan Badge
+### 3. Sorting Date Desc
 
-![Tab Badge](screenshot/03-tab-badge.png)
-![Tab Badge Horizontal](screenshot/04-tab-badge-horizontal.png)
+![Sorting Date Desc](screenshot/03-sorting-date-desc.png)
+
 ---
 
-## M. Kesimpulan
+## N. Kesimpulan
 
 Pada pertemuan ini mahasiswa telah mempelajari:
-- Penggunaan Tabs pada Info List.
-- Pengelompokan detail Product dalam beberapa tab.
-- Penambahan icon dan badge pada tab.
-- Pengaturan orientasi horizontal dan vertical.
+- Implementasi sorting tabel
+- Sorting relasi database
+- Sorting kolom tanggal
+- Default sorting pada Filament
 
-Dengan Tabs, halaman View Product menjadi lebih interaktif, ringkas, dan user-friendly.
+Fitur ini sangat penting untuk manajemen data dalam skala besar.
