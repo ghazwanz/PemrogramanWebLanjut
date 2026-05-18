@@ -1,4 +1,4 @@
-# Laporan Praktikum Jobsheet 8 (Pertemuan 11)
+# Laporan Praktikum Jobsheet 12
 
 # Pemrograman Web Lanjut
 
@@ -10,213 +10,198 @@
 | NIM | 244107020151 |
 | Kelas | TI-2F |
 | Mata Kuliah | Pemrograman Web Lanjut |
-| Topik | Implementasi Search and Filter pada Table Filament |
+| Topik | Implementasi Toggle Column pada Table Filament |
 
 ---
 
 ## Capaian Pembelajaran
 
 Setelah mengikuti praktikum ini, mahasiswa mampu:
-1. Menambahkan fitur Search pada tabel.
-2. Menggunakan method `searchable()`.
-3. Membuat filter berdasarkan tanggal (Date Filter).
-4. Membuat filter berdasarkan relasi (Select Filter).
-5. Menambahkan query custom pada filter.
-6. Menggabungkan fitur Search dan Filter secara bersamaan.
+1. Menambahkan kolom baru pada tabel Filament
+2. Menggunakan `IconColumn` untuk boolean
+3. Mengaktifkan fitur `toggleable()` pada kolom
+4. Mengatur kolom agar tersembunyi secara default
+5. Memahami cara kerja penyimpanan preferensi kolom (session)
 
-Framework yang digunakan: Filament.
+Framework yang digunakan: Filament
 
 ---
 
 ## A. Latar Belakang
 
-Pada pertemuan sebelumnya tabel Post sudah memiliki sorting.
-Namun ketika data semakin banyak, pengguna membutuhkan:
-- pencarian teks (title, slug, category),
-- filter berdasarkan tanggal,
-- filter berdasarkan kategori.
+Pada tabel Post, kita memiliki banyak kolom seperti:
+- Image
+- Title
+- Slug
+- Category
+- Created At
 
-Filament menyediakan fitur Search dan Filter dengan implementasi sederhana pada `PostsTable.php`.
+Namun jika terlalu banyak kolom ditampilkan sekaligus, tabel menjadi penuh dan kurang rapi.
+Solusinya adalah menggunakan fitur Toggle Column, sehingga:
+- Kolom bisa disembunyikan sementara
+- User dapat memilih kolom mana yang ingin ditampilkan
+- Preferensi tersimpan otomatis
 
 ---
 
-## B. Menambahkan Search pada Kolom
+## B. Menambahkan Kolom Baru
 
-File yang diubah:
-- app/Filament/Resources/Posts/Tables/PostsTable.php
+Buka file `PostsTable.php` dan tambahkan hal berikut.
 
-Search diaktifkan pada 3 kolom:
-1. `title`
-2. `slug`
-3. `category.name` (relasi)
+### 1. Menambahkan Kolom ID
+```php
+TextColumn::make('id')
+    ->label('ID'),
+```
 
-Contoh implementasi:
+### 2. Menambahkan Kolom Tags
+```php
+TextColumn::make('tags')
+    ->label('Tags'),
+```
 
+### 3. Menambahkan Kolom Published (Boolean)
+```php
+use Filament\Tables\Columns\IconColumn;
+
+IconColumn::make('published')
+    ->boolean()
+    ->label('Published'),
+```
+
+---
+
+## C. Mengaktifkan Toggle Column
+
+Tambahkan method `->toggleable()` pada setiap kolom.
+Contoh:
+```php
+TextColumn::make('id')
+    ->label('ID')
+    ->toggleable(),
+```
+
+**Hasil:**
+- Muncul icon pengaturan kolom di kanan atas tabel
+- User dapat mencentang atau menghilangkan kolom
+- Klik Apply → Kolom langsung disembunyikan
+
+---
+
+## D. Menyembunyikan Kolom Secara Default
+
+Jika ingin kolom tersembunyi saat pertama kali dibuka, gunakan `isToggledHiddenByDefault: true`:
+```php
+TextColumn::make('tags')
+    ->label('Tags')
+    ->toggleable(isToggledHiddenByDefault: true),
+```
+
+**Hasil:**
+- Kolom tidak tampil secara default
+- User dapat mengaktifkannya melalui menu toggle
+
+---
+
+## E. Penyimpanan Preferensi Kolom
+
+Filament otomatis menyimpan:
+- Kolom yang diaktifkan
+- Kolom yang disembunyikan
+
+Preferensi disimpan dalam session, sehingga saat pindah halaman lalu kembali, konfigurasi tetap tersimpan.
+
+---
+
+## F. Menerapkan Toggle pada Semua Kolom
+
+Contoh lengkap implementasinya pada class `PostsTable`:
 ```php
 TextColumn::make('title')
-    ->searchable()
-    ->sortable();
-
+    ->label('Title')
+    ->toggleable(),
 TextColumn::make('slug')
-    ->searchable()
-    ->sortable();
-
+    ->label('Slug')
+    ->toggleable(),
 TextColumn::make('category.name')
     ->label('Category')
-    ->searchable()
-    ->sortable();
-```
-
-Hasil:
-- Search bar muncul otomatis di atas tabel.
-- Pencarian berjalan real-time berdasarkan title, slug, dan category.
-
----
-
-## C. Membuat Filter Berdasarkan Tanggal
-
-Import yang digunakan:
-
-```php
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\DatePicker;
-```
-
-Filter `created_at` ditambahkan dengan DatePicker:
-
-```php
-Filter::make('created_at')
-    ->label('Creation Date')
-    ->schema([
-        DatePicker::make('created_at')
-            ->label('Select Date'),
-    ])
-```
-
-Agar filter bekerja, ditambahkan query custom:
-
-```php
-->query(function ($query, array $data) {
-    return $query->when(
-        $data['created_at'] ?? null,
-        fn ($query, $date) => $query->whereDate('created_at', $date),
-    );
-})
+    ->toggleable(),
+TextColumn::make('id')
+    ->label('ID')
+    ->toggleable(isToggledHiddenByDefault: true),
 ```
 
 ---
 
-## D. Membuat Filter Berdasarkan Relasi (Kategori)
+## G. Perbandingan Sebelum & Sesudah
 
-Import yang digunakan:
-
-```php
-use Filament\Tables\Filters\SelectFilter;
-```
-
-Filter kategori ditambahkan:
-
-```php
-SelectFilter::make('category_id')
-    ->label('Select Category')
-    ->relationship('category', 'name')
-    ->preload()
-```
-
-Hasil:
-- Dropdown kategori muncul pada panel filter.
-- Data tabel terfilter sesuai kategori yang dipilih.
-
----
-
-## E. Perbandingan Search vs Filter
-
-| Search | Filter |
+| Sebelum | Sesudah |
 | --- | --- |
-| Untuk teks | Untuk kondisi spesifik |
-| Real-time | Berdasarkan form input |
-| Cocok title/slug/category | Cocok tanggal dan relasi |
+| Semua kolom tampil | Bisa pilih kolom |
+| Tampilan penuh | Lebih fleksibel |
+| Tidak bisa custom | User dapat mengatur sendiri |
 
 ---
 
-## F. Hasil yang Diharapkan
+## H. Hasil yang Diharapkan
 
-Target praktikum yang tercapai:
-- Search pada Title aktif.
-- Search pada Slug aktif.
-- Search pada Category aktif.
-- Filter tanggal (`created_at`) aktif.
-- Filter kategori (relasi) aktif.
-- Query custom `whereDate()` aktif.
-- Search dan Filter bisa dipakai bersamaan.
+Mahasiswa berhasil:
+- [x] Menambahkan kolom ID
+- [x] Menambahkan kolom Tags
+- [x] Menambahkan IconColumn untuk Published
+- [x] Mengaktifkan `toggleable()`
+- [x] Menyembunyikan kolom secara default
+- [x] Memahami penyimpanan preferensi kolom
 
 ---
 
-## G. Latihan Praktikum
+## I. Latihan Praktikum
 
-1. Aktifkan search pada minimal 3 kolom
-- [x] Selesai (title, slug, category.name)
-
-2. Buat filter tanggal Created At
+1. Aktifkan `toggleable` pada semua kolom
 - [x] Selesai
 
-3. Buat filter kategori menggunakan SelectFilter
-- [x] Selesai
+2. Sembunyikan minimal 2 kolom secara default
+- [x] Selesai (Kolom ID dan Tags disembunyikan secara default)
 
-4. Uji kombinasi Search + Filter
-- [x] Selesai
+3. Uji apakah preferensi tetap tersimpan saat pindah halaman
+- [x] Selesai (Preferensi sudah diuji tersimpan di storage browser)
 
-5. Screenshot:
-- [x] Search Title (placeholder)
-- [x] Filter Tanggal (placeholder)
-- [x] Filter Kategori (placeholder)
-- [x] Search + Filter Combined (placeholder)
+### Screenshot Latihan
 
----
+1. **Tampilan sebelum toggle (Default View)**
+![Tampilan Sebelum Toggle](screenshot/01-sebelum-toggle.png)
 
-## H. Analisis and Diskusi
+2. **Menu toggle kolom (Pilihan Toggle)**
+![Menu Toggle](screenshot/02-menu-toggle.png)
 
-1. Mengapa search tidak cocok untuk filter tanggal?
-Karena search berbasis pencocokan teks bebas, sedangkan tanggal butuh kecocokan nilai tanggal yang presisi.
-
-2. Apa fungsi `relationship()` pada SelectFilter?
-Untuk menghubungkan filter ke relasi model, sehingga opsi diambil dari tabel relasi (misalnya category name).
-
-3. Mengapa perlu `whereDate()` pada query filter?
-Agar pembandingan hanya pada bagian tanggal tanpa terpengaruh jam/menit/detik dari kolom datetime.
-
-4. Apa perbedaan `searchable()` dan `filters()`?
-`searchable()` untuk pencarian teks langsung di search bar, sedangkan `filters()` untuk kondisi filter terstruktur lewat form input.
+3. **Tampilan setelah beberapa kolom disembunyikan**
+![Tampilan Setelah Hide](screenshot/03-setelah-toggle.png)
 
 ---
 
-## I. Lampiran Screenshot (Placeholder)
+## J. Analisis & Diskusi
 
-### 1. Search Title
+1. **Mengapa toggle column penting pada admin panel?**  
+Karena sangat mungkin sebuah tabel (resource) memiliki banyak atribut data. `Toggle column` membuat UI lebih lega, tidak memaksa horizontal scroll, dan memperbolehkan admin untuk hanya fokus pada informasi kolom yang relevan baginya saja saat itu. 
 
-![Search Title](screenshot/01-search-title.png)
+2. **Apa perbedaan `toggleable()` biasa dengan `isToggledHiddenByDefault`?**  
+`toggleable()` konvensional tetap akan merender (menampilkan) kolom saat load tabel secara default, tetapi memberikan tombol untuk menyembunyikannya. Sedangkan, `isToggledHiddenByDefault` secara visual langsung menjauhkan / menyembunyikan kolom pada rendering tabel awal di sisi klien, dan baru akan tampil saat di-centang secara eksplisit.
 
-### 2. Filter Tanggal
+3. **Mengapa preferensi kolom tetap tersimpan?**  
+Sistem Filament menyimpan 'view state' table (termasuk filters, sorting, search, column visibility, per-page record limits) ke dalam Session (localStorage / cookie) pengguna per browser/user auth-session untuk meningkatkan pengalaman pengguna UX sehingga ia tidak perlu melakukan toggle ulang dari awal ketika memuat halaman baru atau melakukan navigasi tabel tersebut besok hari.
 
-![Filter Tanggal](screenshot/02-filter-tanggal.png)
-
-### 3. Filter Kategori
-
-![Filter Kategori](screenshot/03-filter-kategori.png)
-
-### 4. Search + Filter Combined
-
-![Search and Filter Combined](screenshot/04-search-filter-combined.png)
+4. **Kapan sebaiknya kolom disembunyikan secara default?**  
+Sangat disarankan saat kolom tersebut hanya digunakan sebagian kecil waktu untuk mengecek detail referensi ekstra, misalnya: Primary Key/ID yang sifatnya sequence, referensi metadata tambahan seperti `created_at`, `updated_at`, Foreign IDs, atau atribut notes/tags yang nilainya sangat panjang. Jika hal utama lebih condong ke Nama, Harga, Gambar, biarkan yang lebih esensial tersebut tampil secara bawaan.
 
 ---
 
-## J. Kesimpulan
+## K. Kesimpulan
 
 Pada pertemuan ini mahasiswa telah mempelajari:
-- Implementasi Search pada table Filament.
-- Implementasi Filter berbasis DatePicker.
-- Implementasi Filter berbasis relasi dengan SelectFilter.
-- Custom query filtering (`whereDate()`).
-- Penggabungan Search dan Filter dalam satu tabel.
+- Implementasi Toggle Column
+- Menyembunyikan kolom default
+- Penggunaan IconColumn boolean
+- Manajemen visibilitas kolom
 
-Dengan kombinasi ini, manajemen data Post menjadi lebih cepat, tepat, dan efisien saat jumlah data meningkat.
+Fitur ini sangat berguna untuk sistem dengan banyak data dan kolom dinamis.
+

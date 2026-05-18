@@ -1,4 +1,4 @@
-# Laporan Praktikum Jobsheet 7-1 (Pertemuan 7)
+# Laporan Praktikum Jobsheet 7
 
 # Pemrograman Web Lanjut
 

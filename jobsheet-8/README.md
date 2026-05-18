@@ -1,4 +1,4 @@
-# Laporan Praktikum Jobsheet 8 (Pertemuan 11)
+# Laporan Praktikum Jobsheet 8
 
 # Pemrograman Web Lanjut
 
@@ -10,19 +10,18 @@
 | NIM | 244107020151 |
 | Kelas | TI-2F |
 | Mata Kuliah | Pemrograman Web Lanjut |
-| Topik | Implementasi Search and Filter pada Table Filament |
+| Topik | Implementasi Info List (View Page) di Filament |
 
 ---
 
 ## Capaian Pembelajaran
 
 Setelah mengikuti praktikum ini, mahasiswa mampu:
-1. Menambahkan fitur Search pada tabel.
-2. Menggunakan method `searchable()`.
-3. Membuat filter berdasarkan tanggal (Date Filter).
-4. Membuat filter berdasarkan relasi (Select Filter).
-5. Menambahkan query custom pada filter.
-6. Menggabungkan fitur Search dan Filter secara bersamaan.
+1. Memahami konsep Info List pada Filament.
+2. Mengubah tampilan View Page dari form menjadi display informasi.
+3. Menggunakan TextEntry, ImageEntry, dan IconEntry.
+4. Menggunakan Badge, Color, Icon, dan Format Date.
+5. Mendesain halaman detail (show page) yang lebih profesional.
 
 Framework yang digunakan: Filament.
 
@@ -30,193 +29,198 @@ Framework yang digunakan: Filament.
 
 ## A. Latar Belakang
 
-Pada pertemuan sebelumnya tabel Post sudah memiliki sorting.
-Namun ketika data semakin banyak, pengguna membutuhkan:
-- pencarian teks (title, slug, category),
-- filter berdasarkan tanggal,
-- filter berdasarkan kategori.
+Pada pertemuan sebelumnya, modul Product sudah menggunakan Wizard Form.
+Namun pada halaman View, detail data perlu ditampilkan sebagai informasi read-only, bukan form input.
 
-Filament menyediakan fitur Search dan Filter dengan implementasi sederhana pada `PostsTable.php`.
+Solusi: menggunakan Info List agar tampilan detail menjadi lebih profesional dan informatif.
 
 ---
 
-## B. Menambahkan Search pada Kolom
+## B. Konsep Info List
 
-File yang diubah:
-- app/Filament/Resources/Posts/Tables/PostsTable.php
+Info List digunakan untuk:
+- Menampilkan detail record.
+- Mengganti tampilan input menjadi display-only.
+- Menyusun halaman View lebih terstruktur.
 
-Search diaktifkan pada 3 kolom:
-1. `title`
-2. `slug`
-3. `category.name` (relasi)
+Perbandingan komponen:
+- Form: TextInput, FileUpload, Checkbox
+- Table: TextColumn, ImageColumn, IconColumn
+- Info List: TextEntry, ImageEntry, IconEntry
 
-Contoh implementasi:
+---
 
-```php
-TextColumn::make('title')
-    ->searchable()
-    ->sortable();
+## C. Mengedit Product Info List
 
-TextColumn::make('slug')
-    ->searchable()
-    ->sortable();
+File baru yang dibuat:
+- app/Filament/Resources/Products/Schemas/ProductInfolist.php
 
-TextColumn::make('category.name')
-    ->label('Category')
-    ->searchable()
-    ->sortable();
-```
+Resource yang diubah:
+- app/Filament/Resources/Products/ProductResource.php
+
+Tambahan pada ProductResource:
+- method `infolist(Schema $schema): Schema`
+- memanggil `ProductInfolist::configure($schema)`
+
+---
+
+## D. Membuat Section Product Info
+
+Section pertama menampilkan data utama produk:
+- Product Name (bold, primary)
+- Product ID
+- Product SKU (badge)
+- Product Description
+- Product Creation Date (format `d M Y`)
+
+Komponen yang digunakan:
+- TextEntry
+- badge()
+- color()
+- weight()
+- date()
+
+---
+
+## E. Section Pricing and Stock
+
+Section kedua menampilkan harga dan stok:
+- Product Price
+  - icon currency
+  - format Rupiah dengan `formatStateUsing()`
+- Product Stock
+  - icon stock
+
+Contoh format harga:
+- dari integer `18000000` menjadi `Rp 18.000.000`
+
+---
+
+## F. Section Media and Status
+
+Section ketiga menampilkan media dan status boolean:
+- Product Image (ImageEntry, disk public)
+- Is Active? (IconEntry boolean)
+- Is Featured? (IconEntry boolean)
 
 Hasil:
-- Search bar muncul otomatis di atas tabel.
-- Pencarian berjalan real-time berdasarkan title, slug, dan category.
+- true tampil icon check
+- false tampil icon silang
 
 ---
 
-## C. Membuat Filter Berdasarkan Tanggal
+## G. Ilustrasi Tampilan Detail Product
 
-Import yang digunakan:
+Halaman View Product kini menampilkan informasi read-only dalam 3 section:
+- Product Info
+- Product Price and Stock
+- Image and Status
 
-```php
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\DatePicker;
-```
-
-Filter `created_at` ditambahkan dengan DatePicker:
-
-```php
-Filter::make('created_at')
-    ->label('Creation Date')
-    ->schema([
-        DatePicker::make('created_at')
-            ->label('Select Date'),
-    ])
-```
-
-Agar filter bekerja, ditambahkan query custom:
-
-```php
-->query(function ($query, array $data) {
-    return $query->when(
-        $data['created_at'] ?? null,
-        fn ($query, $date) => $query->whereDate('created_at', $date),
-    );
-})
-```
+Dengan struktur ini, halaman detail menjadi lebih rapi dan profesional dibanding tampilan form biasa.
 
 ---
 
-## D. Membuat Filter Berdasarkan Relasi (Kategori)
+## H. Ringkasan Komponen Info List
 
-Import yang digunakan:
-
-```php
-use Filament\Tables\Filters\SelectFilter;
-```
-
-Filter kategori ditambahkan:
-
-```php
-SelectFilter::make('category_id')
-    ->label('Select Category')
-    ->relationship('category', 'name')
-    ->preload()
-```
-
-Hasil:
-- Dropdown kategori muncul pada panel filter.
-- Data tabel terfilter sesuai kategori yang dipilih.
-
----
-
-## E. Perbandingan Search vs Filter
-
-| Search | Filter |
+| Komponen | Fungsi |
 | --- | --- |
-| Untuk teks | Untuk kondisi spesifik |
-| Real-time | Berdasarkan form input |
-| Cocok title/slug/category | Cocok tanggal dan relasi |
+| TextEntry | Menampilkan teks |
+| ImageEntry | Menampilkan gambar |
+| IconEntry | Menampilkan boolean/icon |
+| badge() | Menampilkan gaya badge |
+| color() | Memberi warna teks/badge |
+| weight() | Menebalkan teks |
+| icon() | Menambah ikon visual |
+| date() | Format tanggal |
+| formatStateUsing() | Format nilai custom |
 
 ---
 
-## F. Hasil yang Diharapkan
+## I. Perbandingan Sebelum dan Sesudah
+
+| Sebelum | Sesudah |
+| --- | --- |
+| View masih terasa seperti form | View menjadi display profesional |
+| Fokus edit field | Fokus baca informasi |
+| Kurang informatif | Lebih rapi dan terstruktur |
+
+---
+
+## J. Hasil yang Diharapkan
 
 Target praktikum yang tercapai:
-- Search pada Title aktif.
-- Search pada Slug aktif.
-- Search pada Category aktif.
-- Filter tanggal (`created_at`) aktif.
-- Filter kategori (relasi) aktif.
-- Query custom `whereDate()` aktif.
-- Search dan Filter bisa dipakai bersamaan.
+- Mengubah View Page menjadi Info List.
+- Menggunakan TextEntry.
+- Menggunakan ImageEntry.
+- Menggunakan IconEntry untuk boolean.
+- Menggunakan badge, icon, color.
+- Mengatur format tanggal dan format harga.
 
 ---
 
-## G. Latihan Praktikum
+## K. Latihan Praktikum
 
-1. Aktifkan search pada minimal 3 kolom
-- [x] Selesai (title, slug, category.name)
+1. Tambahkan badge untuk SKU dengan warna berbeda
+- [x] Selesai (SKU badge warna success)
 
-2. Buat filter tanggal Created At
+2. Tambahkan icon pada Stock
+- [x] Selesai (icon archive-box)
+
+3. Tambahkan format harga menjadi Rp dengan formatStateUsing()
 - [x] Selesai
 
-3. Buat filter kategori menggunakan SelectFilter
-- [x] Selesai
-
-4. Uji kombinasi Search + Filter
-- [x] Selesai
+4. Buat minimal 2 product untuk pengujian
+- [x] Selesai (tersedia 4 product)
 
 5. Screenshot:
-- [x] Search Title (placeholder)
-- [x] Filter Tanggal (placeholder)
-- [x] Filter Kategori (placeholder)
-- [x] Search + Filter Combined (placeholder)
+- [x] Section Product Info (placeholder)
+- [x] Section Pricing and Stock (placeholder)
+- [x] Section Media and Status (placeholder)
 
 ---
 
-## H. Analisis and Diskusi
+## L. Analisis and Diskusi
 
-1. Mengapa search tidak cocok untuk filter tanggal?
-Karena search berbasis pencocokan teks bebas, sedangkan tanggal butuh kecocokan nilai tanggal yang presisi.
+1. Mengapa View Page tidak cocok menggunakan form input?
+Karena halaman detail fokus menampilkan informasi, bukan mengubah data. Form input di halaman view membuat UX tidak konsisten.
 
-2. Apa fungsi `relationship()` pada SelectFilter?
-Untuk menghubungkan filter ke relasi model, sehingga opsi diambil dari tabel relasi (misalnya category name).
+2. Apa perbedaan TextColumn dan TextEntry?
+TextColumn digunakan di tabel/listing, sedangkan TextEntry digunakan di detail Info List (show page).
 
-3. Mengapa perlu `whereDate()` pada query filter?
-Agar pembandingan hanya pada bagian tanggal tanpa terpengaruh jam/menit/detik dari kolom datetime.
+3. Kapan kita menggunakan badge?
+Saat ingin menonjolkan nilai tertentu agar cepat dibaca, misalnya SKU, status, atau label penting.
 
-4. Apa perbedaan `searchable()` dan `filters()`?
-`searchable()` untuk pencarian teks langsung di search bar, sedangkan `filters()` untuk kondisi filter terstruktur lewat form input.
-
----
-
-## I. Lampiran Screenshot (Placeholder)
-
-### 1. Search Title
-
-![Search Title](screenshot/01-search-title.png)
-
-### 2. Filter Tanggal
-
-![Filter Tanggal](screenshot/02-filter-tanggal.png)
-
-### 3. Filter Kategori
-
-![Filter Kategori](screenshot/03-filter-kategori.png)
-
-### 4. Search + Filter Combined
-
-![Search and Filter Combined](screenshot/04-search-filter-combined.png)
+4. Apa keuntungan menggunakan IconEntry untuk boolean?
+Status true/false lebih cepat dipahami secara visual lewat ikon check/silang dibanding teks biasa.
 
 ---
 
-## J. Kesimpulan
+## M. Lampiran Screenshot (Placeholder)
+
+### 1. Section Product Info
+
+![Section Product Info](screenshot/01-section-product-info.png)
+
+### 2. Section Pricing and Stock
+
+![Section Pricing and Stock](screenshot/02-section-pricing-stock.png)
+
+### 3. Section Media and Status
+
+![Section Media and Status](screenshot/03-section-media-status.png)
+
+### 4. Full View Page Product
+
+![View Product Full](screenshot/04-view-product-full.png)
+
+---
+
+## N. Kesimpulan
 
 Pada pertemuan ini mahasiswa telah mempelajari:
-- Implementasi Search pada table Filament.
-- Implementasi Filter berbasis DatePicker.
-- Implementasi Filter berbasis relasi dengan SelectFilter.
-- Custom query filtering (`whereDate()`).
-- Penggabungan Search dan Filter dalam satu tabel.
+- Konsep Info List.
+- Mengubah View Page menjadi display data read-only.
+- Menampilkan image dan icon boolean.
+- Formatting data dengan color, badge, icon, date, dan formatStateUsing.
 
-Dengan kombinasi ini, manajemen data Post menjadi lebih cepat, tepat, dan efisien saat jumlah data meningkat.
+Dengan Info List, halaman detail Product menjadi lebih profesional, informatif, dan nyaman dibaca.
