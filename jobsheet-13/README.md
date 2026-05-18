@@ -1,4 +1,4 @@
-# Laporan Praktikum Jobsheet 12
+# Laporan Praktikum Jobsheet 13
 
 # Pemrograman Web Lanjut
 
@@ -10,198 +10,224 @@
 | NIM | 244107020151 |
 | Kelas | TI-2F |
 | Mata Kuliah | Pemrograman Web Lanjut |
-| Topik | Implementasi Toggle Column pada Table Filament |
+| Topik | Implementasi Table Actions & Custom Action di Filament |
 
 ---
 
 ## Capaian Pembelajaran
 
 Setelah mengikuti praktikum ini, mahasiswa mampu:
-1. Menambahkan kolom baru pada tabel Filament
-2. Menggunakan `IconColumn` untuk boolean
-3. Mengaktifkan fitur `toggleable()` pada kolom
-4. Mengatur kolom agar tersembunyi secara default
-5. Memahami cara kerja penyimpanan preferensi kolom (session)
+1. Menambahkan Record Actions pada tabel Filament
+2. Menggunakan predefined actions (Edit, Delete, Replicate)
+3. Membuat custom action pada tabel
+4. Mengupdate data langsung dari tabel tanpa masuk ke halaman edit
+5. Menambahkan label dan icon pada action
+6. Memahami konsep callback/action function pada Filament
 
-Framework yang digunakan: Filament
+**Framework yang digunakan:** Filament
 
 ---
 
 ## A. Latar Belakang
 
-Pada tabel Post, kita memiliki banyak kolom seperti:
-- Image
-- Title
-- Slug
-- Category
-- Created At
+Pada tabel Post, secara default hanya terdapat tombol:
+- ✏ Edit
 
-Namun jika terlalu banyak kolom ditampilkan sekaligus, tabel menjadi penuh dan kurang rapi.
-Solusinya adalah menggunakan fitur Toggle Column, sehingga:
-- Kolom bisa disembunyikan sementara
-- User dapat memilih kolom mana yang ingin ditampilkan
-- Preferensi tersimpan otomatis
+Sedangkan tombol Delete tersedia di halaman edit.
+Agar lebih efisien, kita dapat:
+- Menambahkan tombol Delete langsung di tabel
+- Menambahkan tombol Replicate (Copy Data)
+- Membuat tombol custom (misalnya ubah status Publish/Unpublish)
 
 ---
 
-## B. Menambahkan Kolom Baru
+## B. Menambahkan Delete Action
 
-Buka file `PostsTable.php` dan tambahkan hal berikut.
+Buka file `PostsTable.php` dan cari bagian `->recordActions([])`.
 
-### 1. Menambahkan Kolom ID
+Dari yang semula hanya berisi `EditAction::make()`, ditambahkan action hapus data:
 ```php
-TextColumn::make('id')
-    ->label('ID'),
-```
+use Filament\Tables\Actions\DeleteAction;
 
-### 2. Menambahkan Kolom Tags
-```php
-TextColumn::make('tags')
-    ->label('Tags'),
-```
-
-### 3. Menambahkan Kolom Published (Boolean)
-```php
-use Filament\Tables\Columns\IconColumn;
-
-IconColumn::make('published')
-    ->boolean()
-    ->label('Published'),
-```
-
----
-
-## C. Mengaktifkan Toggle Column
-
-Tambahkan method `->toggleable()` pada setiap kolom.
-Contoh:
-```php
-TextColumn::make('id')
-    ->label('ID')
-    ->toggleable(),
+->recordActions([
+    EditAction::make(),
+    DeleteAction::make(),
+])
 ```
 
 **Hasil:**
-- Muncul icon pengaturan kolom di kanan atas tabel
-- User dapat mencentang atau menghilangkan kolom
-- Klik Apply → Kolom langsung disembunyikan
+- Tombol Delete muncul di tabel
+- Saat diklik muncul confirmation dialog
+- Data terhapus tanpa masuk ke halaman edit
 
 ---
 
-## D. Menyembunyikan Kolom Secara Default
+## C. Menambahkan Replicate (Copy) Action
 
-Jika ingin kolom tersembunyi saat pertama kali dibuka, gunakan `isToggledHiddenByDefault: true`:
+Filament menyediakan action bawaan untuk menduplikasi data:
 ```php
-TextColumn::make('tags')
-    ->label('Tags')
-    ->toggleable(isToggledHiddenByDefault: true),
+use Filament\Tables\Actions\ReplicateAction;
+
+->recordActions([
+    ReplicateAction::make(),
+    EditAction::make(),
+    DeleteAction::make(),
+])
 ```
 
 **Hasil:**
-- Kolom tidak tampil secara default
-- User dapat mengaktifkannya melalui menu toggle
+- Tombol Replicate muncul
+- Saat diklik → record baru dibuat dengan data yang sama
 
 ---
 
-## E. Penyimpanan Preferensi Kolom
+## D. Daftar Predefined Actions di Filament
 
-Filament otomatis menyimpan:
-- Kolom yang diaktifkan
-- Kolom yang disembunyikan
+Beberapa action bawaan:
 
-Preferensi disimpan dalam session, sehingga saat pindah halaman lalu kembali, konfigurasi tetap tersimpan.
-
----
-
-## F. Menerapkan Toggle pada Semua Kolom
-
-Contoh lengkap implementasinya pada class `PostsTable`:
-```php
-TextColumn::make('title')
-    ->label('Title')
-    ->toggleable(),
-TextColumn::make('slug')
-    ->label('Slug')
-    ->toggleable(),
-TextColumn::make('category.name')
-    ->label('Category')
-    ->toggleable(),
-TextColumn::make('id')
-    ->label('ID')
-    ->toggleable(isToggledHiddenByDefault: true),
-```
-
----
-
-## G. Perbandingan Sebelum & Sesudah
-
-| Sebelum | Sesudah |
+| Action | Fungsi |
 | --- | --- |
-| Semua kolom tampil | Bisa pilih kolom |
-| Tampilan penuh | Lebih fleksibel |
-| Tidak bisa custom | User dapat mengatur sendiri |
+| **Create** | Membuat data |
+| **Edit** | Mengedit data |
+| **View** | Melihat detail |
+| **Delete** | Menghapus |
+| **Replicate** | Menyalin data |
+| **ForceDelete** | Hapus permanen |
+| **Restore** | Restore data soft delete |
+| **Import** | Import data |
+| **Export** | Export data |
+
+---
+
+## E. Membuat Custom Action (Ubah Status Publish)
+
+Misalnya ingin mengubah status published langsung dari tabel tanpa masuk ke edit. Kita melakukan kustomisasi:
+
+### 1. Tambahkan Custom Action & Icon
+```php
+use Filament\Tables\Actions\Action;
+
+Action::make('status')
+    ->label('status change')
+    ->icon('heroicon-o-check-circle')
+```
+
+### 2. Tambahkan Form Input pada Action
+Gunakan schema:
+```php
+use Filament\Forms\Components\Checkbox;
+
+->schema([
+    Checkbox::make('published')
+        ->default(fn($record): bool => (bool) $record->published),
+])
+```
+
+### 3. Tambahkan Logic untuk Update Data
+```php
+->action(function ($record, array $data) {
+    $record->update(['published' => $data['published']]);
+})
+```
+
+---
+
+## F. Contoh Lengkap Custom Action
+
+Berikut adalah kumpulan `recordActions()` secara menyeluruh:
+
+```php
+->recordActions([
+    ReplicateAction::make(),
+    EditAction::make(),
+    DeleteAction::make(),
+    Action::make('status')
+        ->label('status change')
+        ->icon('heroicon-o-check-circle')
+        ->requiresConfirmation() // Fitur Tambahan: Menambahkan Konfirmasi
+        ->schema([
+            Checkbox::make('published')
+                ->default(fn($record): bool => $record->published),
+        ])
+        ->action(function ($record, array $data) {
+            $record->update(['published' => $data['published']]);
+        }),
+])
+```
+
+---
+
+## G. Fitur Tambahan Action
+
+Filament juga menyediakan opsi tambahan yang sangat fleksibel:
+- `requiresConfirmation()` → menambahkan konfirmasi
+- `color()` → ubah warna tombol
+- `visible()` → tampil berdasarkan kondisi
+- `url()` → redirect ke halaman lain
+- `openUrlInNewTab()` → buka di tab baru
 
 ---
 
 ## H. Hasil yang Diharapkan
 
 Mahasiswa berhasil:
-- [x] Menambahkan kolom ID
-- [x] Menambahkan kolom Tags
-- [x] Menambahkan IconColumn untuk Published
-- [x] Mengaktifkan `toggleable()`
-- [x] Menyembunyikan kolom secara default
-- [x] Memahami penyimpanan preferensi kolom
+- [x] Menambahkan DeleteAction
+- [x] Menambahkan ReplicateAction
+- [x] Membuat Custom Action Status
+- [x] Mengupdate data langsung dari tabel
+- [x] Menambahkan icon dan label
 
 ---
 
 ## I. Latihan Praktikum
 
-1. Aktifkan `toggleable` pada semua kolom
+1. Tambahkan Delete & Replicate action.
 - [x] Selesai
+2. Buat custom action untuk toggle publish/unpublish.
+- [x] Selesai
+3. Tambahkan icon berbeda untuk tiap action.
+- [x] Selesai
+4. Tambahkan confirmation pada custom action.
+- [x] Selesai
+5. Screenshot kegiatan:
+- [x] Selesai disertakan pada lampiran
 
-2. Sembunyikan minimal 2 kolom secara default
-- [x] Selesai (Kolom ID dan Tags disembunyikan secara default)
+### Screenshot Latihan (Placeholder)
 
-3. Uji apakah preferensi tetap tersimpan saat pindah halaman
-- [x] Selesai (Preferensi sudah diuji tersimpan di storage browser)
+1. **Delete button di tabel**
+![Delete Action](screenshot/01-delete-action.png)
 
-### Screenshot Latihan
+2. **Replicate action**
+![Replicate Action](screenshot/02-replicate-action.png)
 
-1. **Tampilan sebelum toggle (Default View)**
-![Tampilan Sebelum Toggle](screenshot/01-sebelum-toggle.png)
-
-2. **Menu toggle kolom (Pilihan Toggle)**
-![Menu Toggle](screenshot/02-menu-toggle.png)
-
-3. **Tampilan setelah beberapa kolom disembunyikan**
-![Tampilan Setelah Hide](screenshot/03-setelah-toggle.png)
+3. **Custom status action**
+![Custom Status Action](screenshot/03-custom-status-action.png)
 
 ---
 
 ## J. Analisis & Diskusi
 
-1. **Mengapa toggle column penting pada admin panel?**  
-Karena sangat mungkin sebuah tabel (resource) memiliki banyak atribut data. `Toggle column` membuat UI lebih lega, tidak memaksa horizontal scroll, dan memperbolehkan admin untuk hanya fokus pada informasi kolom yang relevan baginya saja saat itu. 
+1. **Mengapa action di tabel lebih efisien dibanding halaman edit?**  
+Aksi pada struktur baris data tabel memangkas *user journey* karena tidak ada transisi page redirect bolak-balik menuju view Edit, melainkan action tersebut langsung dirender via livewire/modal secara in-place sehingga terasa asinkronus dan super responsif.
 
-2. **Apa perbedaan `toggleable()` biasa dengan `isToggledHiddenByDefault`?**  
-`toggleable()` konvensional tetap akan merender (menampilkan) kolom saat load tabel secara default, tetapi memberikan tombol untuk menyembunyikannya. Sedangkan, `isToggledHiddenByDefault` secara visual langsung menjauhkan / menyembunyikan kolom pada rendering tabel awal di sisi klien, dan baru akan tampil saat di-centang secara eksplisit.
+2. **Apa perbedaan predefined action dan custom action?**  
+Predefined actions (seperti DeleteAction/EditAction) ditawarkan secara _out-of-the-box_ karena merupakan aktivitas CRUD standar, Filament telah menaruh fungsional DB backend logicnya dibelakang layar. Sedangkan custom actions, developer-lah yang mendesain proses logic fungsional database dari inputan formnya.
 
-3. **Mengapa preferensi kolom tetap tersimpan?**  
-Sistem Filament menyimpan 'view state' table (termasuk filters, sorting, search, column visibility, per-page record limits) ke dalam Session (localStorage / cookie) pengguna per browser/user auth-session untuk meningkatkan pengalaman pengguna UX sehingga ia tidak perlu melakukan toggle ulang dari awal ketika memuat halaman baru atau melakukan navigasi tabel tersebut besok hari.
+3. **Bagaimana cara menambahkan validasi dalam custom action?**  
+Kita bisa menaruh _chaining method_ di dalam array schema saat kita mendeklarasikan elemen form field. Contoh: `TextInput::make('name')->required()->maxLength(255)`.
 
-4. **Kapan sebaiknya kolom disembunyikan secara default?**  
-Sangat disarankan saat kolom tersebut hanya digunakan sebagian kecil waktu untuk mengecek detail referensi ekstra, misalnya: Primary Key/ID yang sifatnya sequence, referensi metadata tambahan seperti `created_at`, `updated_at`, Foreign IDs, atau atribut notes/tags yang nilainya sangat panjang. Jika hal utama lebih condong ke Nama, Harga, Gambar, biarkan yang lebih esensial tersebut tampil secara bawaan.
+4. **Kapan kita menggunakan Replicate?**  
+Bermanfaat ketika kita sedang mengerjakan data yang pola nilai kolom inputnya bersifat general/mirip antara iterasi item. Dengan Replicate, admin tak perlu mengetik data awal pada field Edit berulang-ulang dari titik nol.
 
 ---
 
 ## K. Kesimpulan
 
 Pada pertemuan ini mahasiswa telah mempelajari:
-- Implementasi Toggle Column
-- Menyembunyikan kolom default
-- Penggunaan IconColumn boolean
-- Manajemen visibilitas kolom
+- Implementasi Table Actions
+- Menginjeksi fungsi *Delete* & *Replicate* bawaan (predefined) Filament ke tabel
+- Membuat Custom Action interaktif yang mengusung modal form
+- Memperbarui interaksi data secara reaktif dan efisien langsung dari interface tabel.
 
-Fitur ini sangat berguna untuk sistem dengan banyak data dan kolom dinamis.
+Fitur actions memberikan kontrol panel admin fungsionalitas UI yang kuat dan *fluid* yang mempermudah UX secara ekstrim.
 
