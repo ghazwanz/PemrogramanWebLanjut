@@ -230,27 +230,27 @@ Screenshot berikut masih placeholder dan dapat diganti dengan screenshot Postman
 
 ### 1. Register user
 
-![Placeholder Register](screenshot/01-placeholder-register.svg)
+![Placeholder Register](screenshot/01-placeholder-register.png)
 
 ### 2. Login user
 
-![Placeholder Login](screenshot/02-placeholder-login.svg)
+![Placeholder Login](screenshot/02-placeholder-login.png)
 
 ### 3. Bearer token authorization
 
-![Placeholder Bearer Token](screenshot/03-placeholder-bearer-token.svg)
+![Placeholder Bearer Token](screenshot/03-placeholder-bearer-token.png)
 
 ### 4. Create Todo
 
-![Placeholder Create Todo](screenshot/04-placeholder-create-todo.svg)
+![Placeholder Create Todo](screenshot/04-placeholder-create-todo.png)
 
 ### 5. List Todo
 
-![Placeholder List Todo](screenshot/05-placeholder-list-todo.svg)
+![Placeholder List Todo](screenshot/05-placeholder-list-todo.png)
 
 ### 6. Logout user
 
-![Placeholder Logout](screenshot/06-placeholder-logout.svg)
+![Placeholder Logout](screenshot/06-placeholder-logout.png)
 
 ---
 
