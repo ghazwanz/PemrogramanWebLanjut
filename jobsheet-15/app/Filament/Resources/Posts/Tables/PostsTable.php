@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Filament\Resources\Posts\Tables;
+
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ReplicateAction;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ColorColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class PostsTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('title')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('slug')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->badge()
+                    ->separator(',')
+                    ->searchable()
+                    ->toggleable(),
+                ColorColumn::make('color')
+                    ->toggleable(),
+                ImageColumn::make('image')
+                    ->disk('public')
+                    ->toggleable(),
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+                IconColumn::make('published')
+                    ->boolean(),
+            ])
+            ->defaultSort('created_at', 'asc')
+            ->filters([
+                Filter::make('created_at')
+                    ->label('Creation Date')
+                    ->schema([
+                        DatePicker::make('created_at')
+                            ->label('Select Date'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['created_at'] ?? null,
+                            fn ($query, $date) => $query->whereDate('created_at', $date),
+                        );
+                    }),
+                SelectFilter::make('category_id')
+                    ->label('Select Category')
+                    ->relationship('category', 'name')
+                    ->preload(),
+                SelectFilter::make('tags')
+                    ->relationship('tags', 'name')
+                    ->multiple()
+                    ->preload(),
+            ])
+            ->recordActions([
+                ReplicateAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
+                Action::make('status')
+                    ->label('status change')
+                    ->icon('heroicon-o-check-circle')
+                    ->requiresConfirmation()
+                    ->schema([
+                        Checkbox::make('published')
+                            ->default(fn($record): bool => $record->published),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $record->update(['published' => $data['published']]);
+                    }),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+}
