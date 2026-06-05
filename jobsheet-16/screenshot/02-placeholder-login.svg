@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Placeholder Login API">
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <rect x="76" y="64" width="1132" height="592" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="124" y="124" font-family="Arial, sans-serif" font-size="32" fill="#111827">POST /api/login</text>
+  <rect x="124" y="168" width="360" height="44" rx="6" fill="#2563eb"/>
+  <text x="152" y="197" font-family="Arial, sans-serif" font-size="18" fill="#ffffff">Body: email, password</text>
+  <rect x="124" y="252" width="1008" height="280" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="164" y="324" font-family="Arial, sans-serif" font-size="24" fill="#334155">{ "data": { "token": "...", "token_type": "Bearer", "user": {} } }</text>
+  <text x="408" y="604" font-family="Arial, sans-serif" font-size="28" fill="#64748b">Ganti dengan screenshot Postman login</text>
+</svg>

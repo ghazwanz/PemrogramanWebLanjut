@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Placeholder List Todo API">
+  <rect width="1280" height="720" fill="#f8fafc"/>
+  <rect x="76" y="64" width="1132" height="592" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="124" y="124" font-family="Arial, sans-serif" font-size="32" fill="#111827">GET /api/todos</text>
+  <rect x="124" y="174" width="1008" height="70" fill="#e2e8f0"/>
+  <text x="156" y="218" font-family="Arial, sans-serif" font-size="22" fill="#334155">id</text>
+  <text x="280" y="218" font-family="Arial, sans-serif" font-size="22" fill="#334155">todo</text>
+  <text x="680" y="218" font-family="Arial, sans-serif" font-size="22" fill="#334155">label</text>
+  <text x="920" y="218" font-family="Arial, sans-serif" font-size="22" fill="#334155">done</text>
+  <rect x="124" y="244" width="1008" height="74" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="124" y="318" width="1008" height="74" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="402" y="604" font-family="Arial, sans-serif" font-size="28" fill="#64748b">Ganti dengan screenshot Postman list todo</text>
+</svg>
